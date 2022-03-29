@@ -1,0 +1,17 @@
+[
+  {
+    "method": "gibbs_cov",
+    "parameters": 
+    {
+      "burnin": 100    
+    }
+  },
+  {
+    "method": "gibbs_ry2004",
+    "parameters":
+    {
+      "burnin": 100,
+      "tuvn_sampler": "be2017"
+    }
+  }
+]
