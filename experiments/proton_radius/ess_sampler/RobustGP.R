@@ -44,7 +44,10 @@ RobustGP=function(Y,X,sig,nu,N,l,sig0,prob,mcmc,brn,thin,tau.in,sig.in,xi0.in,xi
   y = Y + sig*rnorm(n,0,1)
   }else{y = Y}
   
-  post.sam = ESS.joint(y,x,nu=nu,N=N,l=l,sig0=sig0,sseed=sseed,mcmc=mcmc,brn=brn,thin=thin,
+  post.sam = ESS.joint(y, x, nu=nu, N=N, l=l,
+                       sig0=sig0,
+                       sseed=sseed, mcmc=mcmc, brn=brn, thin=thin,
+                       xi0.fix = xi0.fix,
                        return.plot=return.plot,return.traplot=return.traplot)
   
   # (1) Estimation and fitted curve:

@@ -11,7 +11,8 @@ ESS.joint = function(y, x, nu, N, l, sig0,
                      mcmc, brn, thin, 
                      tau.in, sig.in, xi0.in, xi1.in, xi.in,
                      xi0.fix, xi1.fix, tau.fix, sig.fix, xi.fix,
-                     sseed, verbose, return.plot, return.traplot) {
+                     sseed, verbose, return.plot, return.traplot,
+                     sampler = NULL, sampler_params = NULL) {
   # y:Response variable; x: vector to form design matrix \Psi (n X N+1)
   # N: (N+1) is the number of knots
   # nu:smoothness parameter of Matern; l:length-scale parameter of Matern
@@ -64,14 +65,15 @@ ESS.joint = function(y, x, nu, N, l, sig0,
   # Joint covariance:
   nt = 1000  # parameters for numerical cal 
   Covmatp = covmat_joint(my_knots, l, nu, nt, a=20)
+  
   # precision:
   Inv_cov = solve(Covmatp+10^(-8)*diag(dim(Covmatp)[1])) # inverse of whole
-  # blocked matrices 
+  # blocked matrices - blocking the intercept and everything else...
   dr = dim(Covmatp)[1]
-  Cov_tl = Covmatp[1,1] #C11
-  Cov_br = Covmatp[c(2:dr),c(2:dr)] #C22
-  Cov_bl = Covmatp[c(1:(dr-1)),1] #C21
-  Cov_tr = t(Cov_bl) #C12
+  Cov_tl = Covmatp[1,1] #C11  top left
+  Cov_br = Covmatp[c(2:dr),c(2:dr)] #C22  bottom right
+  Cov_bl = Covmatp[c(1:(dr-1)),1] #C21  bottom left
+  Cov_tr = t(Cov_bl) #C12  top right
   Inv_tl_1 = 1/Cov_tl #S11_1
   Inv_br = tinv(Cov_br-Cov_bl%*%Cov_tr*as.numeric(Inv_tl_1)) #S22
   Inv_tr = -Cov_bl%*%Inv_br*Inv_tl_1 #S12
@@ -79,11 +81,21 @@ ESS.joint = function(y, x, nu, N, l, sig0,
   Inv_tl = Inv_tl_1 + Inv_tl_2 #S11
   Inv_bl = t(Inv_tr) #S21
   # to use the WC algorithm
+  # probably computing conditional MVN covariance here
   Inv_cov_br_1 = tinv(Cov_br)
   Inv_cov_br_2 = -Inv_cov_br_1%*%Cov_bl%*%Cov_tr%*%Inv_cov_br_1/as.numeric(-Inv_tl_1+Cov_tr%*%Inv_cov_br_1%*%Cov_bl)
   
+  # covariance of xi_{2, ..., N+3} | xi_1
+  cov_cj = Cov_br - Cov_bl %*% t(Cov_bl) / Cov_tl
+  
+  # constraints
+  lb = c(1, rep(0, N+1))
+  ub = c(0, rep(Inf, N+1))
+  A = diag(N+2)
+  A[1, 2:(N+2)] = cj
+  
   if(missing(mcmc))
-    mcmc=5000
+    mcmc=500
   if(missing(brn))
     brn=1000
   if(missing(thin))
@@ -136,36 +148,60 @@ ESS.joint = function(y, x, nu, N, l, sig0,
   sig_sam=rep(0,ef)
   fhat_sam=matrix(0,n,ef)
   
-  if(verbose)
+  if (verbose)
     print("MCMC sample draws:")
   
-  for(i in 1:em){
+  for (i in 1:em) {
     # sampling \Xi:
-    if(missing(xi.fix)){
-    y_tilde = y - xi0_in - xi1_in*x
-    nu.ess = as.vector(samp.WC(my_knots,nu,l,tau))
-    xi_out = ESS2_proton(xi_in,nu.ess,y_tilde,X,sig,tau,Inv_tr,Inv_cov_br_2,cj,xi1)  #(beta,nu_ess,y,X,sigsq,cj,x1)
-    #xi_out = pmax(0,xi_out)
-}else{
+    if (missing(xi.fix)) {
+      
+      y_tilde = y - xi0_in - xi1_in*x
+      nu.ess = as.vector(samp.WC(my_knots,nu,l,tau))
+      
+      
+      if (is.null(sampler)) {
+        xi_out = ESS2_proton(xi_in,nu.ess,y_tilde,X,sig,tau,Inv_tr,Inv_cov_br_2,cj,xi1)  #(beta,nu_ess,y,X,sigsq,cj,x1)
+      }
+      else {
+        problem_params = list(
+          n = 1,
+          mu = rep(0, N+2),
+          Sigma = Covmatp,
+          lb = lb,
+          ub = ub,
+          initial = xi_in 
+        )
+        params = c(problem_params, sampler_params)
+        
+        xi_out = do.call(sampler, params)
+      }
+        
+      #xi_out = pmax(0,xi_out)
+    } else {
       xi_out = xi_in
     }
+    
     # sampling \xi_0:
     Xxi = as.vector(X %*% xi_out)
     y_star = y - xi1*x - Xxi
     m0 = mean(y_star)
     s0 = sqrt(sig/n) 
-    if(missing(xi0.fix)){
-      if(med_xi0 == "Inv"){
-         lb = pnorm(1-sig0,m0,s0)
-         ub = pnorm(1+sig0,m0,s0)
-         u0 = runif(1,lb,ub)
-         xi0 = m0+s0*qnorm(u0)
-  }else if(med_xi0 == "ESS"){
-         nu_xi0 = rnorm(1,0,1)
-         xi0 = ESS_xi0(xi0_in,nu_xi0,m0,s0,sig0)
-  }
-    }else{xi0 = xi0.fix}    
-      
+    
+    if (missing(xi0.fix)) {
+      if(med_xi0 == "Inv") {
+        lb = pnorm(1-sig0,m0,s0)
+        ub = pnorm(1+sig0,m0,s0)
+        u0 = runif(1,lb,ub)
+        xi0 = m0+s0*qnorm(u0)
+      }
+      else if(med_xi0 == "ESS"){
+        nu_xi0 = rnorm(1,0,1)
+        xi0 = ESS_xi0(xi0_in,nu_xi0,m0,s0,sig0)
+      }
+    }
+    else{
+      xi0 = xi0.fix
+    }    
     
     # sampling \xi_1:
     y1 = y - xi0 - Xxi
@@ -195,7 +231,6 @@ ESS.joint = function(y, x, nu, N, l, sig0,
     
     # storing MCMC samples:
     if(i > brn && i%%thin == 0){
-      browser()
       xi_sam[,(i-brn)/thin]=xi_out
       xi0_sam[(i-brn)/thin]=xi0
       xi1_sam[(i-brn)/thin]=xi1

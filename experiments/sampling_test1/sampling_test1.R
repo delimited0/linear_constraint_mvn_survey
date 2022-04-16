@@ -29,8 +29,8 @@ library(doRNG)
 library(foreach)
 
 # hard coded arguments for debugging --------------------------------------
-method_conf = "experiments/sampling_test1/method_conf.json"
-dim_conf = "experiments/sampling_test1/dim_conf.json"
+# method_conf = "experiments/sampling_test1/method_conf.json"
+# dim_conf = "experiments/sampling_test1/dim_conf.json"
 
 # read settings ---------------------------------------------------------
 methods = jsonlite::read_json(method_conf, simplifyVector = FALSE)
@@ -50,13 +50,17 @@ print(paste0("Running sampling test 1 with ", future::nbrOfWorkers(), " workers.
 
 # run simulation ----------------------------------------------------------
 settings = expand.grid(method = methods, dimension = dimensions)
-n_settings = length(settings)
+n_settings = nrow(settings)
+
+print( paste0("*** Total methods: ", n_settings, " ***"))
 
 progressr::with_progress({
   p = progressr::progressor(along = 1:(n_settings * n_dims))
   
   foreach(i = 1:n_settings, .inorder = FALSE, 
           .export = ls(globalenv())) %dorng% {
+            
+    p(sprintf("i=%g", i))
     
     method = settings[[i, "method"]]
     d = settings[[i, "dimension"]]

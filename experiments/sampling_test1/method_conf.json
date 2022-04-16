@@ -7,11 +7,62 @@
     }
   },
   {
+    "method": "gibbs_prec",
+    "parameters":
+    {
+      "burnin": 100
+    }
+  },
+  {
     "method": "gibbs_ry2004",
     "parameters":
     {
       "burnin": 100,
-      "tuvn_sampler": "be2017"
+      "tuvn_sampler": "lg2015"
     }
+  },
+  {
+    "method": "gibbs_lg2015",
+    "parameters":
+    {
+      "burnin": 100,
+      "tuvn_sampler": "lg2015"
+    }
+  },
+  {
+    "method": "ehmc",
+    "parameters":
+    {
+      "burnin": 100
+    }
+  },
+  {
+    "method": "rhmc",
+    "parameters":
+    {
+      "burnin": 100,
+      "traj_length": 2
+    }
+  },
+  {
+    "method": "rsm"
+  },
+  {
+    "method": "met"
+  },
+  {
+    "method": "ghk"
+  },
+  {
+    "method": "epess",
+    "parameters":
+    {
+      "N": 1,
+      "J": 1,
+      "burnin": 100
+    }
+  },
+  {
+    "method": "liness"
   }
 ]
