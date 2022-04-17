@@ -55,17 +55,6 @@ RhpcBLASctl::blas_set_num_threads(1)  # no hyperthreading in BLAS
 doFuture::registerDoFuture()
 future::plan(future::multisession, workers = n_threads)
 
-
-# start up summary --------------------------------------------------------
-n_methods = length(methods)
-
-print(paste0("Running proton radius estimation with ",
-             future::nbrOfWorkers(), " workers."))
-print(paste0("Comparing ", n_methods, " methods"))
-
-cat( paste0( sapply(methods, function(x) x$method) , collapse = "\n") )
-cat("\n")
-
 # simulation setting ------------------------------------------------------
 
 # basis functions
@@ -151,6 +140,16 @@ nu = 2.5
 l = 20
 # number of mcmc iterations
 Niter = 500
+
+# start up summary --------------------------------------------------------
+n_methods = length(methods)
+
+print(paste0("Running proton radius estimation with ",
+             future::nbrOfWorkers(), " workers."))
+print(paste0("Comparing ", n_methods, " methods"))
+
+cat( paste0( sapply(methods, function(x) x$method) , collapse = "\n") )
+cat("\n")
 
 # run simulation ----------------------------------------------------------
 

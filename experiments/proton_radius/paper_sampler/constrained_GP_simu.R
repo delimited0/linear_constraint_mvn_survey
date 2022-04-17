@@ -6,12 +6,13 @@ library(TruncatedNormal)
 library(ggplot2)
 library(grid)
 
-source(here::here("experiments", "proton_radius", "maternCov.R")) # matern kernel with gerneral smoothness \nu and length-scale parameter l
-source(here::here("experiments", "proton_radius", "cGP.R"))
-source(here::here("experiments", "proton_radius", "c0GP.R"))
-source(here::here("experiments", "proton_radius", "c1GP.R"))
-source(here::here("experiments", "proton_radius", "uGP.R"))
+source(here::here("experiments", "proton_radius", "paper_sampler", "maternCov.R")) # matern kernel with gerneral smoothness \nu and length-scale parameter l
+source(here::here("experiments", "proton_radius", "paper_sampler", "cGP.R"))
+source(here::here("experiments", "proton_radius", "paper_sampler", "c0GP.R"))
+source(here::here("experiments", "proton_radius", "paper_sampler", "c1GP.R"))
+source(here::here("experiments", "proton_radius", "paper_sampler", "uGP.R"))
 
+source(here::here("sampling_wrapper.R"))
 
 ## basis functions ##
 h = function(x,j) ifelse(abs(x-u[j]) <= dN, (1-abs(x-u[j])/dN), 0)
