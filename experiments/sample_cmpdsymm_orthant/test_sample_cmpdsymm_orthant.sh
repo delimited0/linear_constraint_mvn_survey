@@ -7,4 +7,4 @@ Rscript experiments/sample_cmpdsymm_orthant/sample_cmpdsymm_orthant.R \
   --dim_conf=experiments/sample_cmpdsymm_orthant/test_dim_conf.json \
   --sample_path=experiments/sample_cmpdsymm_orthant/test_samples \
   --seed=2022 \
-  --n_threads=4 & 
+  --n_threads=4

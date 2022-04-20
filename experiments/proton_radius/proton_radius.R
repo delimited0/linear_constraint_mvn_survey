@@ -165,11 +165,10 @@ for (i in 1:n_methods) {
   
   print( paste0("--- ", method, "---") )
     
-  registerDoRNG(seed)
   progressr::with_progress({
-    p = progressr::progressor(along = 1:(n_methods))    
+    p = progressr::progressor(along = 1:n_reps)    
     
-    foreach(i = 1:n_reps, .inorder = FALSE, 
+    foreach(i = 1:n_reps, .inorder = FALSE, .options.RNG = seed,
             .export = ls(globalenv()), .errorhandling = "remove") %dorng% {
               
       p(sprintf("i=%g", i))
