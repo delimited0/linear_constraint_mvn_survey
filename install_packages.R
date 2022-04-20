@@ -16,7 +16,8 @@ cran_pkgs = setdiff(unique(deps$Package), custom_pkgs)
 renv::install(cran_pkgs)
 
 # install packages no longer available on CRAN
-renv::install("cran/tmg@bd996adcc584886cc66fc9cedd5d1426e54f63b1")
+# renv::install("cran/tmg@bd996adcc584886cc66fc9cedd5d1426e54f63b1")
+devtools::install_github("cran/tmg")
 
 # install packages from Github necessary to run experiments
 renv::install("delimited0/epmgpr")
