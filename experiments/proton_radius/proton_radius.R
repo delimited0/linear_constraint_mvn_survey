@@ -1,7 +1,7 @@
 'proton_radius
 
 Usage:
-  proton_radius.R (--method_conf=<method_conf>) (--sample_path=<sample_path>) (--reps=<reps>) [--seed=seed] [--n_threads=n_threads] 
+  proton_radius.R (--method_conf=<method_conf>) (--sample_path=<sample_path>) (--reps=<reps>) [--seed=seed] [--n_cores=n_cores] [--n_blas_threads=n_blas_threads]
   proton_radius.R (-h|--help)
 
 Options:
@@ -10,7 +10,8 @@ Options:
   --sample_path=<sample_path>  Configuration specific sampler output.
   --reps=<reps>  Number of repetitions.
   --seed=seed  Seed.
-  --n_threads=n_threads  Number of cores.
+  --n_cores=n_cores  Number of cores.
+  --n_blas_threads=n_blas_threads  Number of threads for multithread BLAS
 ' -> doc
 
 opts = docopt::docopt(doc, version = 'proton_radius 1.0')
@@ -19,12 +20,14 @@ method_conf = opts$method_conf
 sample_path = opts$sample_path
 # timing_path = opts$timing_path
 seed = as.numeric(opts$seed)
-n_threads = as.numeric(opts$n_threads)
+n_cores = as.numeric(opts$n_cores)
+n_blas_threads = as.numeric(opts$n_blas_threads)
 n_reps = as.numeric(opts$reps)
 
 # default arguments -------------------------------------------------------
 if (is.null(seed)) seed = 2022
-if (is.null(n_threads)) n_threads = 1
+if (is.null(n_cores)) n_cores = 1
+if (is.null(n_blas_threads)) n_blas_threads = 1
 
 # hard coded arguments for debugging --------------------------------------
 # method_conf = "experiments/proton_radius/method_conf.json"
@@ -49,10 +52,10 @@ methods = jsonlite::read_json(method_conf, simplifyVector = FALSE)
 if (!dir.exists(sample_path)) dir.create(sample_path)
 
 # parallel set up ---------------------------------------------------------
-RhpcBLASctl::blas_set_num_threads(1)  # no hyperthreading in BLAS
+RhpcBLASctl::blas_set_num_threads(n_blas_threads)  # no hyperthreading in BLAS
 RhpcBLASctl::omp_set_num_threads(1)
 doFuture::registerDoFuture()
-future::plan(future::multisession, workers = n_threads)
+future::plan(future::multisession, workers = n_cores)
 
 # simulation setting ------------------------------------------------------
 
@@ -148,7 +151,8 @@ Niter = 500
 n_methods = length(methods)
 
 print(paste0("Running proton radius estimation with ",
-             future::nbrOfWorkers(), " workers."))
+             future::nbrOfWorkers(), " workers, ", 
+             n_blas_threads, " BLAS threads / worker."))
 print(paste0("Comparing ", n_methods, " methods"))
 
 cat( paste0( sapply(methods, function(x) x$method) , collapse = "\n") )
