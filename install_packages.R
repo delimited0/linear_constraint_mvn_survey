@@ -13,7 +13,16 @@ deps = renv::dependencies()
 cran_pkgs = setdiff(unique(deps$Package), custom_pkgs)
 
 # install packages from CRAN necessary to run experiments
-install.packages(cran_pkgs)
+renv::install(cran_pkgs)
+
+# install packages no longer available on CRAN
+renv::install("cran/tmg")
 
 # install packages from Github necessary to run experiments
-devtools::install_github("")
+renv::install("delimited0/epmgpr")
+renv::install("delimited0/sampletmvn")
+renv::install("delimited0/met")
+renv::install("delimited0/rcpp-lin-con-gauss")
+renv::install("JCatwood/HCCMVN")
+
+
