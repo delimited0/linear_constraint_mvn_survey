@@ -8,4 +8,4 @@ Rscript experiments/sample_identity_box/identity_box.R \
 --half_width=3 \
 --sample_path=experiments/sample_identity_box/test_samples \
 --seed=2022 \
---n_threads=18
+--n_threads=18 &
