@@ -54,7 +54,7 @@ if (!dir.exists(sample_path)) dir.create(sample_path)
 # parallel set up ---------------------------------------------------------
 RhpcBLASctl::blas_set_num_threads(1)  # no hyperthreading in BLAS
 doFuture::registerDoFuture()
-future::plan(future::multisession, workers = n_threads)
+future::plan(future::multicore, workers = n_threads)
 print(paste0("Running sampling test 1 with ", future::nbrOfWorkers(), " workers."))
 
 
