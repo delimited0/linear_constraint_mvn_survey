@@ -70,8 +70,12 @@ rhmc = function(n, mu, Sigma, lb, ub, initial, traj_length, burnin = 0) {
 
 ghk = function(n, mu, Sigma, lb, ub, initial = NULL) {
   d = length(mu)
-  samples = tmvnsim::tmvnsim(n, d, lower = lb, upper = ub, means = mu, sigma = Sigma)
-  return(samples$samp)
+  result = tmvnsim::tmvnsim(n, d, lower = lb, upper = ub, 
+                            means = mu, sigma = Sigma)
+  samples <- result$samp
+  weights <- result$wts
+  idx <- sample(1:nrow(samples), size = n, replace = TRUE, prob = weights)
+  return(samples[idx, ])
 }
 
 

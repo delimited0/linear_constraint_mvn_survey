@@ -83,6 +83,10 @@ r = cGP(x, y,  nu = nu,  l = l*C,
 
 r = cGP(x, y,  nu = nu,  l = l*C,
         niter = Niter, u = u, Phi = Phi, trans_mat = trans_mat,
+        sampler = gibbs_lg2015, sampler_params = list(tuvn_sampler = "lg2015"))
+
+r = cGP(x, y,  nu = nu,  l = l*C,
+        niter = Niter, u = u, Phi = Phi, trans_mat = trans_mat,
         sampler = rsm)
 
 r = cGP(x, y,  nu = nu,  l = l*C,
@@ -133,6 +137,11 @@ ru = constrGP_n(x, y,  nu = nu , l = l*C,
 
 
 ## posterior median estimates and 95% posterior credible intervals ## 
+
+f = r[[1]]
+f_pred = apply(Phi%*%f[,-c(1:100)],1, median)
+f_CI = apply(Phi%*%f[,-c(1:100)],1, quantile, probs = c(0.025,0.975))
+
 # cGP #
 f = r0[[1]]
 f_pred = apply(Phi%*%f[,-c(1:100)],1, median)
@@ -179,19 +188,20 @@ CIu_test = apply(Phi_t%*%fu[,-c(1:100)],1, quantile, probs = c(0.025,0.975))
 
 df = data.frame(xtest,f_test)
 G <- ggplot(df, aes(x=xtest, y=f_test), color=variable)+ 
-  geom_line(aes(x=xtest, y=f_test), colour="blue")+
-  geom_line(aes(x=xtest, y=fn_test), colour="green")+
-  geom_line(aes(x=xtest, y=fu_test), colour="purple")+
-  geom_line(aes(x=xtest, y=ytest), colour="red", lty = 2)+
-  geom_line(aes(x=xtest, y=CIu_test[1,]), colour="purple", lty = 2)+
-  geom_line(aes(x=xtest, y=CIu_test[2,]), colour="purple", lty = 2)+ 
-  geom_line(aes(x=xtest, y=CIn1_test[1,]), colour="blue", lty = 5, cex = 0.3)+
-  geom_line(aes(x=xtest, y=CIn1_test[2,]), colour="blue", lty = 5, cex = 0.3)+ 
-  geom_ribbon(aes(ymin=CI_test[1,], ymax=CI_test[2,]), alpha=0.4)+
-  geom_ribbon(aes(ymin=CIn_test[1,], ymax=CIn_test[2,]), alpha=0.2)
+  geom_line(aes(x=xtest, y=f_test), colour="blue") 
++
+  # geom_line(aes(x=xtest, y=fn_test), colour="green")+
+  # geom_line(aes(x=xtest, y=fu_test), colour="purple")+
+  # geom_line(aes(x=xtest, y=ytest), colour="red", lty = 2)+
+  # geom_line(aes(x=xtest, y=CIu_test[1,]), colour="purple", lty = 2)+
+  # geom_line(aes(x=xtest, y=CIu_test[2,]), colour="purple", lty = 2)+ 
+  # geom_line(aes(x=xtest, y=CIn1_test[1,]), colour="blue", lty = 5, cex = 0.3)+
+  # geom_line(aes(x=xtest, y=CIn1_test[2,]), colour="blue", lty = 5, cex = 0.3)+ 
+  # geom_ribbon(aes(ymin=CI_test[1,], ymax=CI_test[2,]), alpha=0.4)+
+  # geom_ribbon(aes(ymin=CIn_test[1,], ymax=CIn_test[2,]), alpha=0.2)
 
 G <- G + theme_bw()
-Glabs<- G+labs(x = "x", y = "y")
+Glabs <- G+labs(x = "x", y = "y")
 Glabs + theme( 
   axis.title.x = element_text(size=8, face="bold"),
   axis.title.y = element_text(size=8, face="bold"),
@@ -207,4 +217,5 @@ Gzlabs2<- Gzlabs + theme(
 vp <- viewport(width = 0.45, height = 0.45, x = 0.75, y = 0.75)
 print(Gzlabs2, vp=vp)
 
-
+rp_samples = sqrt(-6* r$weights[2,-c(1:100)])
+point_est_summary = mcse(rp_samples)

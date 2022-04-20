@@ -51,7 +51,7 @@ cGP = function(x, y, nu, l, niter, u, Phi, trans_mat,
   # mcmc # 
   for(i in 2:niter){
     
-    if (i%%10 == 0) print(i)
+    # if (i%%10 == 0) print(i)
     
     # update f #
     Sig = tau[i-1]*t(Phi) %*% Phi + sigma[i-1]*mcov_inv
@@ -76,7 +76,7 @@ cGP = function(x, y, nu, l, niter, u, Phi, trans_mat,
       problem_params = list(n = 1, mu = rep(0, nrow(tran_Sig)), Sigma = tran_Sig,
                             lb = L-trans_mat%*%mu_cond, ub = U)
       problem_params$initial = rep(max(problem_params$lb) + 1, nrow(tran_Sig))
-      browser()
+      
       params = c(sampler_params, problem_params)
       f_trans = trans_mat %*% mu_cond + as.vector(do.call(sampler, params))
     }

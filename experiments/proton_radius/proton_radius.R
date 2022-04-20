@@ -1,14 +1,13 @@
 'proton_radius
 
 Usage:
-  proton_radius.R (--method_conf=<method_conf>) (--sample_path=<sample_path>) (--timing_path=<timing_path>) (--reps=<reps>) [--seed=seed] [--n_threads=n_threads] 
+  proton_radius.R (--method_conf=<method_conf>) (--sample_path=<sample_path>) (--reps=<reps>) [--seed=seed] [--n_threads=n_threads] 
   proton_radius.R (-h|--help)
 
 Options:
   -h --help  Usage.
   --method_conf=<method_conf>  Method configuration.
   --sample_path=<sample_path>  Configuration specific sampler output.
-  --timing_path=<timing_path>  Configuratino specific timing output.
   --reps=<reps>  Number of repetitions.
   --seed=seed  Seed.
   --n_threads=n_threads  Number of cores.
@@ -18,7 +17,7 @@ opts = docopt::docopt(doc, version = 'proton_radius 1.0')
 
 method_conf = opts$method_conf
 sample_path = opts$sample_path
-timing_path = opts$timing_path
+# timing_path = opts$timing_path
 seed = as.numeric(opts$seed)
 n_threads = as.numeric(opts$n_threads)
 n_reps = as.numeric(opts$reps)
@@ -48,7 +47,6 @@ methods = jsonlite::read_json(method_conf, simplifyVector = FALSE)
 
 # setup output directories -------------------------------------------
 if (!dir.exists(sample_path)) dir.create(sample_path)
-if (!dir.exists(timing_path)) dir.create(timing_path)
 
 # parallel set up ---------------------------------------------------------
 RhpcBLASctl::blas_set_num_threads(1)  # no hyperthreading in BLAS
@@ -101,7 +99,11 @@ psi_N = function(x)
   ifelse(x < u[N]-dN, 0, (x+dN-u[N])^3/(6*dN))
 
 # read real experimental covariates
-x = read.table(here("experiments", "proton_radius", "xvals.txt"))$V1
+Q2 = read.table(here("experiments", "proton_radius", "xvals.txt"))$V1
+Q2max = max(Q2)
+
+# dimensionless scaled variable
+x = Q2 / Q2max  
 n = length(x)
 
 # dipole function
@@ -159,9 +161,7 @@ for (i in 1:n_methods) {
   params = methods[[i]]$parameters
   
   method_sample_path = paste0(sample_path, "/", method, "/")
-  method_timing_path = paste0(timing_path, "/", method, "/")
   if (!dir.exists(method_sample_path)) dir.create(method_sample_path)
-  if (!dir.exists(method_timing_path)) dir.create(method_timing_path)
   
   print( paste0("--- ", method, "---") )
     
@@ -183,13 +183,12 @@ for (i in 1:n_methods) {
                    sampler = method, sampler_params = params)
       elapsed = toc(quiet=TRUE)
       
-      runtime = data.frame(
-        method = method,
-        runtime = elapsed$toc - elapsed$tic
-      )
+      samples = t(posterior$weights)
       
-      saveRDS(t(posterior$weights), paste0(method_sample_path, "rep=", i))
-      saveRDS(runtime, paste0(method_timing_path, "rep=", i))
+      attr(samples, "method") = method
+      attr(samples, "runtime") = elapsed$toc - elapsed$tic
+      
+      saveRDS(samples, paste0(method_sample_path, "rep=", i))
     }
   })
 }

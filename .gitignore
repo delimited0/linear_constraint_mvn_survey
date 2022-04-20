@@ -41,3 +41,5 @@ vignettes/*.pdf
 # output directories
 samples/
 timings/
+test_samples/
+test_timings/
