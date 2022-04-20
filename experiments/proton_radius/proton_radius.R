@@ -55,7 +55,8 @@ if (!dir.exists(sample_path)) dir.create(sample_path)
 RhpcBLASctl::blas_set_num_threads(n_blas_threads)  # no hyperthreading in BLAS
 RhpcBLASctl::omp_set_num_threads(1)
 doFuture::registerDoFuture()
-future::plan(future::multisession, workers = n_cores)
+# future::plan(future::multisession, workers = n_cores)
+future::plan(future::multicore, workers = n_cores)
 
 # simulation setting ------------------------------------------------------
 

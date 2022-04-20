@@ -7,5 +7,5 @@ Rscript experiments/proton_radius/proton_radius.R \
   --sample_path=experiments/proton_radius/samples \
   --reps=36 \
   --seed=2022 \
-  --n_cores=1 \
-  --n_blas_threads=18
+  --n_cores=18 \
+  --n_blas_threads=1
