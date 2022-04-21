@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-export R_PROGRESSR_ENABLE=TRUE
-
 Rscript experiments/sample_identity_box/identity_box.R \
   --method_conf=experiments/sample_identity_box/method_conf.json \
   --dim_conf=experiments/sample_identity_box/test_dim_conf.json \

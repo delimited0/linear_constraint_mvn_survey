@@ -55,7 +55,6 @@ if (!dir.exists(sample_path)) dir.create(sample_path)
 RhpcBLASctl::blas_set_num_threads(1)  # no hyperthreading in BLAS
 doFuture::registerDoFuture()
 future::plan(future::multicore, workers = n_threads)
-print(paste0("Running sampling test 1 with ", future::nbrOfWorkers(), " workers."))
 
 
 # start up summary --------------------------------------------------------
@@ -70,6 +69,7 @@ print(paste0("Evaluating dimensions ",
 settings = expand.grid(method = methods, dimension = dimensions)
 n_settings = nrow(settings)
 
+progressr::handlers("progress")
 progressr::with_progress({
   p = progressr::progressor(along = 1:(n_settings))
   
@@ -77,10 +77,10 @@ progressr::with_progress({
           .export = ls(globalenv())) %dorng% 
     {
       
-      p(sprintf("i=%g", i))
-      
       method = settings[[i, "method"]]
       d = settings[[i, "dimension"]]
+      
+      p(message = sprintf("%s, dimension %d", method, d))
       
       # problem-dimension specific settings
       problem_params = list(
@@ -122,6 +122,6 @@ progressr::with_progress({
       # save samples
       saveRDS(samples, paste0(method_sample_path, "d=", d))
     } 
-})
+}, enable = TRUE)
 
 
