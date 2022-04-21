@@ -64,6 +64,7 @@ print(paste0("Evaluating dimensions ",
 settings = expand.grid(method = methods, dimension = dimensions)
 n_settings = nrow(settings)
 
+progressr::handlers("progress")
 progressr::with_progress({
   p = progressr::progressor(along = 1:(n_settings))
   

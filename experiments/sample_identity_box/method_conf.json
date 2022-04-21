@@ -1,17 +1,9 @@
 [
   {
-    "method": "gibbs_cov",
-    "parameters": 
-    {
-      "burnin": 100    
-    }
+    "method": "gibbs_cov"
   },
   {
-    "method": "gibbs_prec",
-    "parameters":
-    {
-      "burnin": 100
-    }
+    "method": "gibbs_prec"
   },
   {
     "method": "gibbs_ry2004",

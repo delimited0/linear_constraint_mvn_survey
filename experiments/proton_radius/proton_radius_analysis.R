@@ -3,11 +3,6 @@ library(data.table)
 library(coda)
 library(mcmcse)
 
-Q2 = read.table(here("experiments", "proton_radius", "xvals.txt"))$V1
-Q2max = max(Q2)
-x = Q2 / Q2max
-n = length(x)
-
 # pick samples ------------------------------------------------------------
 
 # sample_path = here("experiments", "proton_radius", "test_samples")
@@ -50,10 +45,25 @@ all_stats = rbindlist(lapply(
 # visualization -----------------------------------------------------------
 library(ggplot2)
 
-ggplot(all_stats, aes(x = method, y = posterior_median)) +
-  geom_point()
+ggplot(all_stats[method != "epess"], aes(x = method, y = posterior_median)) +
+  geom_point() + 
+  geom_hline(yintercept = 0.84) +
+  theme_bw() +
+  guides(x = guide_axis(angle = 90))
 
 ggplot(all_stats, aes(x = method, y = mc_se)) +
-  geom_point()
+  geom_point() + 
+  theme_bw() +
+  guides(x = guide_axis(angle = 90))
+
+ggplot(all_stats, aes(x = method, y = ess / runtime)) +
+  geom_point() +
+  theme_bw() +
+  guides(x = guide_axis(angle = 90))
+
+ggplot(all_stats, aes(x = method, y = runtime)) +
+  geom_point() +
+  theme_bw() +
+  guides(x = guide_axis(angle = 90))
 
 

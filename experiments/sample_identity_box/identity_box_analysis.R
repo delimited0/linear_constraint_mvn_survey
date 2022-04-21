@@ -31,13 +31,16 @@ marginal_ks <- function(samples, mu, Sigma, lb, ub) {
 }
 
 
-# problem parameters ------------------------------------------------------
-
-
 # test sampling -----------------------------------------------------------
+# sample_path = 
+#   here("experiments", "sample_identity_box", "test_samples", "width=3")
 sample_path = 
-  here("experiments", "sample_identity_box", "test_samples", "width=3")
+  here("experiments", "sample_identity_box", "samples", "width=3")
 
+
+# preprocess --------------------------------------------------------------
+
+# very slow... effectiveSize's fault I think
 all_stats = rbindlist(lapply( 
   dir(sample_path, full.names = TRUE), 
   function(method) {
@@ -45,6 +48,8 @@ all_stats = rbindlist(lapply(
     method_stats = rbindlist(lapply(
       dir(method, full.names = TRUE), 
       function(dim_samples) {
+        
+        print(dim_samples)
         
         samples = readRDS(dim_samples)
         d = ncol(samples)
@@ -68,19 +73,53 @@ all_stats = rbindlist(lapply(
   }
 ))
 
+
+# save stats --------------------------------------------------------------
+all_stat_path = 
+  here("experiments", "sample_identity_box", "samples", "all_stats.RDS")
+saveRDS(all_stats, all_stat_path)
+
+all_stats = readRDS(all_stat_path)
+
 # visualization -----------------------------------------------------------
 library(ggplot2)
+library(ggrepel)
+
+n_methods <- length(unique(all_stats$method))
+method_colors <- setNames(viridis::viridis_pal(option = "D")(n_methods), 
+                          nm = unique(all_stats$method))
+
+perf_dim_style = list(
+  theme_bw(),
+  geom_text_repel(aes(label = label), color = "black", max.overlaps = Inf),
+  guides(fill="none", color="none"),
+  scale_color_manual(values = method_colors)
+)
 
 avg_marginal_stats = all_stats[, 
-                               .(ks = mean(ks), ess = mean(ess)),
+                               .(ks = mean(ks), 
+                                 ess = mean(ess), 
+                                 runtime = min(runtime)),
                                by = list(method, problem_d)]
 
-# runtime
-ggplot(all_stats, aes(x = problem_d, y = runtime, color = method)) +
-  geom_point() + geom_line()
+avg_marginal_stats[, 
+                   label := ifelse(problem_d == max(problem_d), 
+                                   method, NA_character_),
+                   by = method]
 
-# average marginal ks distance by dimension
+# runtime ----
+ggplot(avg_marginal_stats, aes(x = problem_d, y = runtime, color = method)) +
+  geom_point() + geom_line() +
+  perf_dim_style
+
+# average marginal effective samples per second by problem dimension ----
+ggplot(avg_marginal_stats, aes(x = problem_d, y = log(ess / runtime), color = method)) +
+  geom_point() + geom_line() +
+  perf_dim_style
+  
+# average marginal ks distance by problem dimension ----
 ggplot(avg_marginal_stats, aes(x = problem_d, ks, color = method)) +
-  geom_point() + geom_line()
+  geom_point() + geom_line() +
+  perf_dim_style
 
 
