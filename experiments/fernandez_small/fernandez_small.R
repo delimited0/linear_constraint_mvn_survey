@@ -27,9 +27,9 @@ if (is.null(seed)) seed = 2022
 if (is.null(n_cores)) n_cores = 1
 
 # hard coded arguments for debugging --------------------------------------
-method_conf = "experiments/fernandez_small/method_conf.json"
-dim_conf = "experiments/fernandez_small/dim_conf.json"
-result_path = "experiments/fernandez_small/test_results/"
+# method_conf = "experiments/fernandez_small/method_conf.json"
+# dim_conf = "experiments/fernandez_small/dim_conf.json"
+# result_path = "experiments/fernandez_small/test_results/"
 
 # libraries ---------------------------------------------------------------
 library(here)

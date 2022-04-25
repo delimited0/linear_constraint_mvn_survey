@@ -1,7 +1,7 @@
 source("prob_wrapper.R")
 
 n = 1000
-d = 10
+d = 16
 mu = rep(0, d)
 Sigma = .5*diag(d) + .5*rep(1, d) %*% t(rep(1, d))
 lb = rep(0, d)
