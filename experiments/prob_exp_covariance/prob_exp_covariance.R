@@ -1,23 +1,25 @@
-'fernandez_isotopic
+'prob_exp_covariance
 
 Usage:
-  fernandez_isotopic.R (--method_conf=<method_conf>) (--dim_conf=<dim_conf>) (--result_path=<result_path>) [--seed=seed] [--n_cores=n_cores]
-  fernandez_isotopic.R (-h|--help)
+  prob_exp_covariance.R (--method_conf=<method_conf>) (--dim_conf=<dim_conf>) (--dep=<dep>) (--result_path=<result_path>) [--seed=seed] [--n_cores=n_cores]
+  prob_exp_covariance.R (-h|--help)
 
 Options:
   -h --help  Usage.
   --method_conf=<method_conf>  Method configuration.
   --dim_conf=<dim_conf>  Dimension configuration.
+  --dep=<dep> Exponential covariance kernel dependence parameter.
   --result_path=<result_path>  Configuration specific sampler output.
   --reps=<reps>  Number of repetitions.
   --seed=seed  Seed.
   --n_cores=n_cores  Number of cores.
 ' -> doc
 
-opts = docopt::docopt(doc, version = 'fernandez_isotopic 1.0')
+opts = docopt::docopt(doc, version = 'prob_exp_covariance 1.0')
 
 method_conf = opts$method_conf
 dim_conf = opts$dim_conf
+dep = as.numeric(opts$dep)
 result_path = opts$result_path
 seed = as.numeric(opts$seed)
 n_cores = as.numeric(opts$n_cores)
@@ -27,9 +29,9 @@ if (is.null(seed)) seed = 2022
 if (is.null(n_cores)) n_cores = 1
 
 # hard coded arguments for debugging --------------------------------------
-# method_conf = "experiments/fernandez_isotopic/method_conf.json"
-# dim_conf = "experiments/fernandez_isotopic/dim_conf.json"
-# result_path = "experiments/fernandez_isotopic/test_results/"
+# method_conf = "experiments/prob_exp_covariance/method_conf.json"
+# dim_conf = "experiments/prob_exp_covariance/test_dim_conf.json"
+# result_path = "experiments/prob_exp_covariance/test_results/"
 
 # libraries ---------------------------------------------------------------
 library(here)
@@ -38,6 +40,7 @@ library(progressr)
 library(doRNG)
 library(foreach)
 library(tictoc)
+library(fields)
 
 source(here("prob_wrapper.R"))
 
@@ -55,8 +58,7 @@ doFuture::registerDoFuture()
 future::plan(future::multicore, workers = n_cores)
 
 # start up summary --------------------------------------------------------
-print(paste0("Running Fernandez 2007 small isotopic covariance
-             probability estimation with ",
+print(paste0("Running exponential covariance probability estimation with ",
              future::nbrOfWorkers(), " workers."))
 print(paste0("Comparing ", nrow(methods), " methods:"))
 sapply(methods, function(x) x$method)
@@ -80,16 +82,13 @@ progressr::with_progress({
       p(message = sprintf("%s, dimension %d", method, d))
       
       # problem-dimension specific settings
-      ridx <- matrix(1:d, nrow = d, ncol = d)
-      cidx <- t(ridx)
-      diffmat <- abs(ridx - cidx)
-      Sigma = solve((1 / (2^diffmat)) * (diffmat <= (d / 2)))
+      locs = matrix(runif(2*d), ncol = 2)
       
       problem_params = list(
         mu = rep(0, d),
-        Sigma = Sigma,
-        lb = rep(.5, d),
-        ub = rep(1, d)
+        Sigma = exp(-rdist(locs)),
+        lb = rep(-Inf, d),
+        ub = rnorm(d, mean = 4, sd = .5)
       )
       
       # method specific settings

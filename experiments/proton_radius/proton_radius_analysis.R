@@ -41,29 +41,75 @@ all_stats = rbindlist(lapply(
 ))
 
 
-
 # visualization -----------------------------------------------------------
 library(ggplot2)
 
-ggplot(all_stats[method != "epess"], aes(x = method, y = posterior_median)) +
+# true parameter recovery
+recovery_plot = ggplot(all_stats[method != "epess"], 
+                       aes(x = method, y = posterior_median)) +
   geom_point() + 
   geom_hline(yintercept = 0.84) +
   theme_bw() +
-  guides(x = guide_axis(angle = 90))
+  guides(x = guide_axis(angle = 45)) +
+  labs(x = "Method", y = "Posterior median")
 
-ggplot(all_stats, aes(x = method, y = mc_se)) +
+ggsave(
+  recovery_plot,
+  filename = "recovery_plot.pdf",
+  device = "pdf",
+  path =  here("plots", "proton_radius"),
+  width = 6,
+  height = 4
+)
+
+# MC standard error
+mcse_plot = ggplot(all_stats, aes(x = method, y = mc_se)) +
   geom_point() + 
   theme_bw() +
-  guides(x = guide_axis(angle = 90))
+  guides(x = guide_axis(angle = 45)) +
+  labs(x = "Method", y = "Monte Carlo standard error")
 
-ggplot(all_stats, aes(x = method, y = ess / runtime)) +
+ggsave(
+  mcse_plot,
+  filename = "mcse_plot.pdf",
+  device = "pdf",
+  path =  here("plots", "proton_radius"),
+  width = 6,
+  height = 4
+)
+
+# ESS / second
+esspersec_plot = ggplot(all_stats, aes(x = method, y = ess / runtime)) +
   geom_point() +
   theme_bw() +
-  guides(x = guide_axis(angle = 90))
+  guides(x = guide_axis(angle = 45)) +
+  labs(x = "Method", y = "Effective samples per second")
 
-ggplot(all_stats, aes(x = method, y = runtime)) +
+ggsave(
+  esspersec_plot,
+  filename = "essps_plot.pdf",
+  device = "pdf",
+  path =  here("plots", "proton_radius"),
+  width = 6,
+  height = 4
+)
+
+# runtime
+runtime_plot = ggplot(all_stats, aes(x = method, y = runtime)) +
   geom_point() +
   theme_bw() +
-  guides(x = guide_axis(angle = 90))
+  guides(x = guide_axis(angle = 90)) +
+  labs(x = "Method", y = "Runtime (seconds)")
+
+ggsave(
+  runtime_plot,
+  filename = "runtime_plot.pdf",
+  device = "pdf",
+  path =  here("plots", "proton_radius"),
+  width = 6,
+  height = 4
+)
+
+
 
 
