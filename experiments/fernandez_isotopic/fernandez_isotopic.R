@@ -1,37 +1,35 @@
-'identity_box
+'fernandez_isotopic
 
 Usage:
-  identity_box.R (--method_conf=<method_conf>) (--dim_conf=<dim_conf>) (--half_width=<half_width>) (--sample_path=<sample_path>) [--seed=seed] [--n_threads=n_threads] 
-  identity_box.R (-h|--help)
+  fernandez_isotopic.R (--method_conf=<method_conf>) (--dim_conf=<dim_conf>) (--result_path=<result_path>) [--seed=seed] [--n_cores=n_cores]
+  fernandez_isotopic.R (-h|--help)
 
 Options:
   -h --help  Usage.
   --method_conf=<method_conf>  Method configuration.
   --dim_conf=<dim_conf>  Dimension configuration.
-  --half_width=<half_width>  Truncation box half width.
-  --sample_path=<sample_path>  Configuration specific sampler output.
+  --result_path=<result_path>  Configuration specific sampler output.
+  --reps=<reps>  Number of repetitions.
   --seed=seed  Seed.
-  --n_threads=n_threads  Number of cores.
+  --n_cores=n_cores  Number of cores.
 ' -> doc
 
-opts = docopt::docopt(doc, version = 'identity_box 1.0')
+opts = docopt::docopt(doc, version = 'fernandez_isotopic 1.0')
 
 method_conf = opts$method_conf
 dim_conf = opts$dim_conf
-half_width = as.numeric(opts$half_width)
-sample_path = opts$sample_path
+result_path = opts$result_path
 seed = as.numeric(opts$seed)
-n_threads = as.numeric(opts$n_threads)
+n_cores = as.numeric(opts$n_cores)
 
-# default arguments -------------------------------------------------------
+# default arguments ------------------------------------------------------
 if (is.null(seed)) seed = 2022
-if (is.null(n_threads)) n_threads = 1
+if (is.null(n_cores)) n_cores = 1
 
 # hard coded arguments for debugging --------------------------------------
-method_conf = "experiments/sample_identity_box/method_conf.json"
-dim_conf = "experiments/sample_identity_box/test_dim_conf.json"
-sample_path = "experiments/sample_identity_box/samples"
-half_width = 3
+# method_conf = "experiments/fernandez_isotopoc/method_conf.json"
+# dim_conf = "experiments/fernandez_isotopoc/dim_conf.json"
+# result_path = "experiments/fernandez_isotopoc/test_results/"
 
 # libraries ---------------------------------------------------------------
 library(here)
@@ -39,26 +37,26 @@ library(doFuture)
 library(progressr)
 library(doRNG)
 library(foreach)
+library(tictoc)
 
-source(here("sampling_wrapper.R"))
+source(here("prob_wrapper.R"))
 
-# read settings ---------------------------------------------------------
+# read settings -----------------------------------------------------------
 methods = jsonlite::read_json(method_conf, simplifyVector = FALSE)
 dimensions = jsonlite::read_json(dim_conf, simplifyVector = TRUE)
 
-
 # setup output directories -------------------------------------------
-if (!dir.exists(sample_path)) dir.create(sample_path)
-
+if (!dir.exists(result_path)) dir.create(result_path)
 
 # parallel set up ---------------------------------------------------------
 RhpcBLASctl::blas_set_num_threads(1)  # no hyperthreading in BLAS
+RhpcBLASctl::omp_set_num_threads(1)
 doFuture::registerDoFuture()
-future::plan(future::multicore, workers = n_threads)
-
+future::plan(future::multicore, workers = n_cores)
 
 # start up summary --------------------------------------------------------
-print(paste0("Running identity box sampling with ",
+print(paste0("Running Fernandez 2007 small isotopic covariance
+             probability estimation with ",
              future::nbrOfWorkers(), " workers."))
 print(paste0("Comparing ", nrow(methods), " methods:"))
 sapply(methods, function(x) x$method)
@@ -76,7 +74,6 @@ progressr::with_progress({
   foreach(i = 1:n_settings, .inorder = FALSE, .options.RNG = seed,
           .export = ls(globalenv())) %dorng% 
     {
-      
       method = settings[[i, "method"]]
       d = settings[[i, "dimension"]]
       
@@ -84,12 +81,10 @@ progressr::with_progress({
       
       # problem-dimension specific settings
       problem_params = list(
-        n = 5000,
         mu = rep(0, d),
-        Sigma = diag(d),
-        lb = rep(-half_width, d),
-        ub = rep(half_width, d),
-        initial = rep(0, d)
+        Sigma = solve(.5 * diag(d) + .5 * rep(1, d) %*% t(rep(1, d))),
+        lb = rep(.5, d),
+        ub = rep(1, d)
       )
       
       # method specific settings
@@ -99,29 +94,23 @@ progressr::with_progress({
         sep = "=", collapse = ", "
       )
       
-      # print( paste0("--- ", method$method, ", Dimension: ", d, "---") )
-      # print( paste("Parameters: ", param_string) )
-      
       # all input arguments
       params = c(problem_params, method$parameters)
       
       tictoc::tic()
-      samples = do.call(method$method, params)
+      result = do.call(method$method, params)
       elapsed = tictoc::toc(quiet = TRUE)
       
-      attr(samples, "method") = method$method
-      attr(samples, "runtime") = elapsed$toc - elapsed$tic
-      attr(samples, "half_width") = half_width
+      attr(result, "method") = method$method
+      attr(result, "runtime") = elapsed$toc - elapsed$tic
       
       # handle output directories
-      method_sample_path = 
-        paste0(sample_path, "/width=", half_width, "/", method$method, "/")
-      if (!dir.exists(method_sample_path)) 
-        dir.create(method_sample_path, recursive=TRUE)
+      method_result_path = 
+        paste0(result_path, "/", method$method, "/")
+      if (!dir.exists(method_result_path)) 
+        dir.create(method_result_path, recursive=TRUE)
       
-      # save samples
-      saveRDS(samples, paste0(method_sample_path, "d=", d))
-    } 
+      # save result
+      saveRDS(result, paste0(method_result_path, "d=", d))
+    }
 }, enable = TRUE)
-
-
