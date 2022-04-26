@@ -1,0 +1,33 @@
+[
+  {
+    "method": "sov",
+    "parameters":
+    {
+      "n_batch_mc": 1000
+    }
+  },
+  {
+    "method": "tlr",
+    "parameters":
+    {
+      "n_batch_mc": 1000
+    }
+  },
+  {
+    "method": "ghk",
+    "parameters":
+    {
+      "n_batch_mc": 1000
+    }
+  },
+  {
+    "method": "epmgp"
+  },
+  {
+    "method": "met",
+    "parameters":
+    {
+      "n_batch_mc": 1000
+    }
+  }
+]

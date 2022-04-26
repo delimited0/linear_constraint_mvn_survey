@@ -1,7 +1,7 @@
 'prob_exp_covariance
 
 Usage:
-  prob_exp_covariance.R (--method_conf=<method_conf>) (--dim_conf=<dim_conf>) (--dep=<dep>) (--result_path=<result_path>) [--seed=seed] [--n_cores=n_cores]
+  prob_exp_covariance.R (--method_conf=<method_conf>) (--dim_conf=<dim_conf>) (--dep=<dep>) (--result_path=<result_path>) [--seed=seed] [--n_cores=n_cores] [--blas_threads=blas_threads]
   prob_exp_covariance.R (-h|--help)
 
 Options:
@@ -13,6 +13,7 @@ Options:
   --reps=<reps>  Number of repetitions.
   --seed=seed  Seed.
   --n_cores=n_cores  Number of cores.
+  --blas_threads=blas_threads  Number of threads for BLAS
 ' -> doc
 
 opts = docopt::docopt(doc, version = 'prob_exp_covariance 1.0')
@@ -23,10 +24,12 @@ dep = as.numeric(opts$dep)
 result_path = opts$result_path
 seed = as.numeric(opts$seed)
 n_cores = as.numeric(opts$n_cores)
+n_blas_threads = as.numeric(opts$n_blas_threads)
 
 # default arguments ------------------------------------------------------
 if (is.null(seed)) seed = 2022
 if (is.null(n_cores)) n_cores = 1
+if (is.null(n_blas_threads)) n_blas_threads = 1
 
 # hard coded arguments for debugging --------------------------------------
 # method_conf = "experiments/prob_exp_covariance/method_conf.json"
@@ -52,8 +55,8 @@ dimensions = jsonlite::read_json(dim_conf, simplifyVector = TRUE)
 if (!dir.exists(result_path)) dir.create(result_path)
 
 # parallel set up ---------------------------------------------------------
-RhpcBLASctl::blas_set_num_threads(1)  # no hyperthreading in BLAS
-RhpcBLASctl::omp_set_num_threads(1)
+RhpcBLASctl::blas_set_num_threads(n_blas_threads)  
+RhpcBLASctl::omp_set_num_threads(n_blas_threads)
 doFuture::registerDoFuture()
 future::plan(future::multicore, workers = n_cores)
 
@@ -74,7 +77,7 @@ progressr::with_progress({
   p = progressr::progressor(along = 1:(n_settings))
   
   foreach(i = 1:n_settings, .inorder = FALSE, .options.RNG = seed,
-          .export = ls(globalenv())) %dorng% 
+          .export = ls(globalenv()), .errorhandling = "remove") %dorng% 
     {
       method = settings[[i, "method"]]
       d = settings[[i, "dimension"]]
@@ -110,7 +113,7 @@ progressr::with_progress({
       
       # handle output directories
       method_result_path = 
-        paste0(result_path, "/", method$method, "/")
+        paste0(result_path, "/dep=", dep, "/", method$method, "/")
       if (!dir.exists(method_result_path)) 
         dir.create(method_result_path, recursive=TRUE)
       

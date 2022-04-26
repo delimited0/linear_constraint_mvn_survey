@@ -1,0 +1,9 @@
+[
+  {
+    "method": "ghk",
+    "parameters":
+      {
+        "n_batch_mc": 1000
+      }
+  }
+]
