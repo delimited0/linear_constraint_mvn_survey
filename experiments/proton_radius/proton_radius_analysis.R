@@ -98,7 +98,7 @@ ggsave(
 runtime_plot = ggplot(all_stats, aes(x = method, y = runtime)) +
   geom_point() +
   theme_bw() +
-  guides(x = guide_axis(angle = 90)) +
+  guides(x = guide_axis(angle = 45)) +
   labs(x = "Method", y = "Runtime (seconds)")
 
 ggsave(

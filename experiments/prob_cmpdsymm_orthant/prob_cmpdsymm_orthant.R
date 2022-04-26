@@ -72,8 +72,8 @@ progressr::handlers("progress")
 progressr::with_progress({
   p = progressr::progressor(along = 1:(n_settings))
   
-  foreach(i = 1:n_settings, .inorder = FALSE, .options.RNG = seed,
-          .export = ls(globalenv())) %dorng% 
+  results = foreach(i = 1:n_settings, .inorder = FALSE, .options.RNG = seed,
+          .export = ls(globalenv()), .errorhandling = "remove") %dorng% 
     {
       method = settings[[i, "method"]]
       d = settings[[i, "dimension"]]
@@ -115,3 +115,5 @@ progressr::with_progress({
       saveRDS(result, paste0(method_result_path, "d=", d))
     }
 }, enable = TRUE)
+
+
