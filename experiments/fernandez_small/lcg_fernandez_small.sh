@@ -6,4 +6,4 @@ Rscript experiments/fernandez_small/fernandez_small.R \
 --result_path=experiments/fernandez_small/results \
 --seed=2022 \
 --n_cores=1 \
---n_threads=18
+--n_blas_threads=18
