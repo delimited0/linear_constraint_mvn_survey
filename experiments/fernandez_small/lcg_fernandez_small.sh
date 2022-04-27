@@ -5,4 +5,5 @@ Rscript experiments/fernandez_small/fernandez_small.R \
 --dim_conf=experiments/fernandez_small/dim_conf.json \
 --result_path=experiments/fernandez_small/results \
 --seed=2022 \
---n_cores=18
+--n_cores=1 \
+--n_threads=18

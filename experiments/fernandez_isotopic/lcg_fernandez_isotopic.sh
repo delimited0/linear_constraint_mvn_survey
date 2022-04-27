@@ -5,4 +5,5 @@ Rscript experiments/fernandez_isotopic/fernandez_isotopic.R \
 --dim_conf=experiments/fernandez_isotopic/dim_conf.json \
 --result_path=experiments/fernandez_isotopic/results \
 --seed=2022 \
---n_cores=18
+--n_cores=1 \
+--n_blas_threads=18

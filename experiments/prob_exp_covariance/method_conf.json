@@ -10,7 +10,8 @@
     "method": "tlr",
     "parameters":
     {
-      "n_batch_mc": 1000
+      "n_batch_mc": 1000,
+      "epsl": 1e-3
     }
   },
   {

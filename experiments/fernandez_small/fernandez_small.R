@@ -1,7 +1,7 @@
 'fernandez_small
 
 Usage:
-  fernandez_small.R (--method_conf=<method_conf>) (--dim_conf=<dim_conf>) (--result_path=<result_path>) [--seed=seed] [--n_cores=n_cores]
+  fernandez_small.R (--method_conf=<method_conf>) (--dim_conf=<dim_conf>) (--result_path=<result_path>) [--seed=seed] [--n_cores=n_cores] [--n_blas_threads=n_blas_threads]
   fernandez_small.R (-h|--help)
 
 Options:
@@ -12,6 +12,7 @@ Options:
   --reps=<reps>  Number of repetitions.
   --seed=seed  Seed.
   --n_cores=n_cores  Number of cores.
+  --n_blas_threads=n_blas_threads  Number of BLAS threads.
 ' -> doc
 
 opts = docopt::docopt(doc, version = 'fernandez_small 1.0')
@@ -21,10 +22,12 @@ dim_conf = opts$dim_conf
 result_path = opts$result_path
 seed = as.numeric(opts$seed)
 n_cores = as.numeric(opts$n_cores)
+n_blas_threads = as.numeric(opts$n_blas_threads)
 
 # default arguments ------------------------------------------------------
 if (is.null(seed)) seed = 2022
 if (is.null(n_cores)) n_cores = 1
+if (is.null(n_blas_threads)) n_blas_threads = 1
 
 # hard coded arguments for debugging --------------------------------------
 # method_conf = "experiments/fernandez_small/method_conf.json"
@@ -49,8 +52,8 @@ dimensions = jsonlite::read_json(dim_conf, simplifyVector = TRUE)
 if (!dir.exists(result_path)) dir.create(result_path)
 
 # parallel set up ---------------------------------------------------------
-RhpcBLASctl::blas_set_num_threads(1)  # no hyperthreading in BLAS
-RhpcBLASctl::omp_set_num_threads(1)
+RhpcBLASctl::blas_set_num_threads(n_blas_threads)
+RhpcBLASctl::omp_set_num_threads(n_blas_threads)
 doFuture::registerDoFuture()
 future::plan(future::multicore, workers = n_cores)
 

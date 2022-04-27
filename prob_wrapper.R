@@ -10,13 +10,14 @@ sov = function(mu, Sigma, lb, ub, n_batch_mc) {
 }
 
 # block_size set to sqrt(d), as in Cao et al 2021
-tlr <- function(mu, Sigma, lb, ub, n_batch_mc, block_size = NULL) {
+tlr <- function(mu, Sigma, lb, ub, n_batch_mc, block_size = NULL,
+                epsl = 1e-4) {
   d <- length(mu)
   if (is.null(block_size))
     m = max(floor(sqrt(d)), 4)
   else 
     m = block_size
-  tlr <- tlrmvnmvt::TLRQMC(N = n_batch_mc, m = m)
+  tlr <- tlrmvnmvt::TLRQMC(N = n_batch_mc, m = m, epsl = epsl)
   prob <- tlrmvnmvt::pmvn(lb, ub, mu, Sigma, algorithm = tlr)
   result <- 
     data.frame(variable = c("estimate", "error"),
