@@ -84,23 +84,51 @@ all_stats = readRDS(all_stat_path)
 # visualization -----------------------------------------------------------
 library(ggplot2)
 library(ggrepel)
+library(shades)
+
+
+families = fread(here("sampling_method_directory.csv"))
+all_stats = merge(all_stats, families)
 
 n_methods <- length(unique(all_stats$method))
-method_colors <- setNames(viridis::viridis_pal(option = "D")(n_methods), 
-                          nm = unique(all_stats$method))
+# method_colors <- setNames(viridis::viridis_pal(option = "D")(n_methods), 
+#                           nm = unique(all_stats$method))
+method_colors = setNames(RColorBrewer::brewer.pal(n_methods, "BrBG"), 
+                         nm = unique(all_stats$method))
 
+# methods by shape
+shape_set = c(15:18, 7:14)
+method_shapes = setNames(shape_set[1:n_methods], nm = unique(all_stats$method))
+
+# family by color
+n_family = length(unique(all_stats$family))
+family_colors = setNames(viridis::turbo(n_family),
+                         nm = unique(all_stats$family))
+
+# common plot style
 perf_dim_style = list(
   theme_bw(),
-  geom_text_repel(aes(label = label), color = "black", max.overlaps = Inf),
-  guides(fill="none", color="none"),
-  scale_color_manual(values = method_colors)
+  geom_text_repel(aes(label = label), 
+                  # color = "black", 
+                  max.overlaps = Inf,
+                  force = 10, 
+                  # xlim = c(0, 3000),
+                  nudge_x = 200),
+  guides(fill="none", 
+         # color="none",
+         shape="none", linetype="none"),
+  xlim(0, 2500),
+  # scale_color_manual(values = method_colors)
+  scale_color_manual(values = family_colors),
+  scale_shape_manual(values = method_shapes),
+  theme(legend.position = "bottom")
 )
 
 avg_marginal_stats = all_stats[, 
                                .(ks = mean(ks), 
                                  ess = mean(ess), 
                                  runtime = min(runtime)),
-                               by = list(method, problem_d)]
+                               by = list(method, family, problem_d)]
 
 avg_marginal_stats[, 
                    label := ifelse(problem_d == max(problem_d), 
@@ -108,18 +136,54 @@ avg_marginal_stats[,
                    by = method]
 
 # runtime ----
-ggplot(avg_marginal_stats, aes(x = problem_d, y = runtime, color = method)) +
-  geom_point() + geom_line() +
-  perf_dim_style
+runtime_plot = ggplot(avg_marginal_stats, aes(x = problem_d, y = runtime, 
+                               shape = method,
+                               color = family)) +
+  geom_point(size=3) + geom_line(linetype=2) +
+  scale_y_log10(labels = function(x) format(x, scientific=FALSE)) +
+  perf_dim_style +
+  labs(x = "Dimension", y = "Runtime (seconds)")
+
+ggsave(
+  runtime_plot,
+  filename = "runtime_plot.pdf",
+  device = "pdf",
+  path =  here("plots", "sample_identity_box"),
+  width = 6,
+  height = 5
+)
 
 # average marginal effective samples per second by problem dimension ----
-ggplot(avg_marginal_stats, aes(x = problem_d, y = log(ess / runtime), color = method)) +
-  geom_point() + geom_line() +
-  perf_dim_style
+esspersec_plot = ggplot(avg_marginal_stats, 
+       aes(x = problem_d, y = ess / runtime, 
+           shape = method, color = family)) +
+  scale_y_log10(labels = function(x) format(x, scientific=FALSE)) +
+  geom_point(size=3) + geom_line(linetype=2) +
+  perf_dim_style +
+  labs(x = "Dimension", y = "Mean marginal effective samples per second")
+  
+ggsave(
+  esspersec_plot,
+  filename = "essps_plot.pdf",
+  device = "pdf",
+  path =  here("plots", "sample_identity_box"),
+  width = 6,
+  height = 5
+)
   
 # average marginal ks distance by problem dimension ----
-ggplot(avg_marginal_stats, aes(x = problem_d, ks, color = method)) +
-  geom_point() + geom_line() +
-  perf_dim_style
+ks_plot = ggplot(avg_marginal_stats, aes(x = problem_d, ks, 
+                               shape = method, color = family)) +
+  geom_point(size=3) + geom_line(linetype=2) +
+  perf_dim_style +
+  labs(x = "Dimension", y = "Mean marginal KS test statistic")
 
+ggsave(
+  ks_plot,
+  filename = "ks_plot.pdf",
+  device = "pdf",
+  path =  here("plots", "sample_identity_box"),
+  width = 6,
+  height = 5
+)
 

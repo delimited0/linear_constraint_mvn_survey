@@ -91,7 +91,7 @@ progressr::with_progress({
       problem_params = list(
         mu = rep(0, d),
         Sigma = Sigma,
-        lb = rep(.5, d),
+        lb = rep(0, d),
         ub = rep(1, d)
       )
       
@@ -111,6 +111,7 @@ progressr::with_progress({
       
       attr(result, "method") = method$method
       attr(result, "runtime") = elapsed$toc - elapsed$tic
+      attr(result, "d") = d
       
       # handle output directories
       method_result_path = 

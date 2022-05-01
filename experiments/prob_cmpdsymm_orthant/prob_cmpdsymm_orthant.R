@@ -1,7 +1,7 @@
 'prob_cmpdsymm_orthant
 
 Usage:
-  prob_cmpdsymm_orthant.R (--method_conf=<method_conf>) (--dim_conf=<dim_conf>) (--corr=<corr>) (--result_path=<result_path>) [--seed=seed] [--n_cores=n_cores]
+  prob_cmpdsymm_orthant.R (--method_conf=<method_conf>) (--dim_conf=<dim_conf>) (--corr=<corr>) (--result_path=<result_path>) [--seed=seed] [--n_cores=n_cores] [--n_blas_threads=n_blas_threads]
   prob_cmpdsymm_orthant.R (-h|--help)
 
 Options:
@@ -13,6 +13,7 @@ Options:
   --reps=<reps>  Number of repetitions.
   --seed=seed  Seed.
   --n_cores=n_cores  Number of cores.
+  --n_blas_threads=n_blas_threads  Number of BLAS threads.
 ' -> doc
 
 opts = docopt::docopt(doc, version = 'prob_cmpdsymm_orthant 1.0')
@@ -23,10 +24,12 @@ corr = as.numeric(opts$corr)
 result_path = opts$result_path
 seed = as.numeric(opts$seed)
 n_cores = as.numeric(opts$n_cores)
+n_blas_threads = as.numeric(opts$n_blas_threads)
 
 # default arguments ------------------------------------------------------
 if (is.null(seed)) seed = 2022
 if (is.null(n_cores)) n_cores = 1
+if (is.null(n_blas_threads)) n_blas_threads = 1
 
 # hard coded arguments for debugging --------------------------------------
 # method_conf = "experiments/prob_cmpdsymm_orthant/method_conf.json"
@@ -104,6 +107,7 @@ progressr::with_progress({
       
       attr(result, "method") = method$method
       attr(result, "runtime") = elapsed$toc - elapsed$tic
+      attr(result, "d") = d
       
       # handle output directories
       method_result_path = 

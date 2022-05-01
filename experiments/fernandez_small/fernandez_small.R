@@ -105,6 +105,7 @@ progressr::with_progress({
       
       attr(result, "method") = method$method
       attr(result, "runtime") = elapsed$toc - elapsed$tic
+      attr(result, "d") = d
       
       # handle output directories
       method_result_path = 

@@ -21,7 +21,10 @@ lcg(mu, Sigma, lb, ub,
 
 met(mu, Sigma, lb, ub, n_batch_mc = n, n_est = 10)
 
-bvcdn(mu, Sigma, lb, ub)
+uvcdn(mu, Sigma, lb, ub)
+dvcdn(mu, Sigma, lb, ub, 4)
+
+hblkcdn(mu, Sigma, lb, ub, 4, 4)
 
 
 # Fernandez 2007 ----------------------------------------------------------

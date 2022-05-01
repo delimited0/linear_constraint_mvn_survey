@@ -1,14 +1,16 @@
 # wrappers to unify probability estimation interface and output ----------------
 
+
+# Genz and Bretz QRSVN ----------------------------------------------------
 sov = function(mu, Sigma, lb, ub, n_batch_mc) {
   gb <- tlrmvnmvt::GenzBretz(n_batch_mc)
   
   prob <- tlrmvnmvt::pmvn(lb, ub, mu, Sigma, algorithm = gb)
-  result <- data.frame(variable = c("estimate", "error"), 
-                       value = c(prob, attr(prob, "error")))
-  return(result)
+  return(prob)
 }
 
+
+# Tile low rank approximation ---------------------------------------------
 # block_size set to sqrt(d), as in Cao et al 2021
 tlr <- function(mu, Sigma, lb, ub, n_batch_mc, block_size = NULL,
                 epsl = 1e-4) {
@@ -19,17 +21,18 @@ tlr <- function(mu, Sigma, lb, ub, n_batch_mc, block_size = NULL,
     m = block_size
   tlr <- tlrmvnmvt::TLRQMC(N = n_batch_mc, m = m, epsl = epsl)
   prob <- tlrmvnmvt::pmvn(lb, ub, mu, Sigma, algorithm = tlr)
-  result <- 
-    data.frame(variable = c("estimate", "error"),
-               value = c(prob, attr(prob, "error")))
-  return(result)
+  return(prob)
 }
 
+
+# Expectation propagation -------------------------------------------------
 epmgp <- function(mu, Sigma, lb, ub) {
   prob <- epmgpr::pmvn(lb, ub, mu, Sigma)
-  return(data.frame(variable = "estimate", value = prob))
+  return(prob)
 }
 
+
+# GHK ---------------------------------------------------------------------
 ghk <- function(mu, Sigma, lb, ub, n_batch_mc, n_est = 10) {
   
   ests = rep(NA, n_est)
@@ -38,12 +41,16 @@ ghk <- function(mu, Sigma, lb, ub, n_batch_mc, n_est = 10) {
                                 reorder = TRUE, log = FALSE)  
     ests[i] = result$value
   }
-  return(data.frame(
-    variable = c("estimate", "error"),
-    value = c(mean(ests), sd(ests) / sqrt(n_est))
-  ))
+  
+  prob = mean(ests)
+  attr(prob, "error") = sd(ests) / sqrt(n_est)
+  
+  return(prob)
 }
 
+
+
+# LCG ---------------------------------------------------------------------
 # from the paper: 
 # n_sub_samples = 16
 # n_sub_skip = 10
@@ -59,49 +66,119 @@ lcg <- function(mu, Sigma, lb, ub,
                             n_hdr_skip = n_hdr_skip,
                             domain_fraction = domain_fraction, 
                             n_est = n_est)
-  return(data.frame(
-    variable = c("estimate", "error"), 
-    value = c(prob, attr(prob, "error"))
-  ))
+  return(prob)
 }
 
+
+# Minimax exponential tilting ---------------------------------------------
 met = function(mu, Sigma, lb, ub, n_batch_mc, n_est = 10) {
   prob = met::pmvn(mu, Sigma, lb, ub, n = n_batch_mc, n_est = n_est)
-  return(data.frame(
-    variable = c("estimate", "relerror", "upvnd"),
-    value = c(prob, attr(prob, "relErr"), attr(prob, "upbnd"))
-  ))
+  return(prob)
 }
 
-bvcdn = function(mu, Sigma, lb, ub, tol = 1e-4) {
+
+
+# univariate conditioning -------------------------------------------------
+uvcdn = function(mu, Sigma, lb, ub, tol = 1e-4) {
+  
   problem_d = length(mu)
-  vorder = hccmvn::recurUniandBlkcmb(
-    covM = Sigma, a = lb - mu, b = ub - mu, bsz_ = 1)
-  Sigma = Sigma[vorder, vorder]
-  lb = lb[vorder]
-  ub = ub[vorder]
-  mu = mu[vorder]
-  prob = hccmvn::hccmvn(Sigma, lb - mu, ub - mu, m=problem_d, d=2, tol=tol)
-  return(data.frame(
-    variable = "estimate",
-    value = prob
-  ))
+  odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, problem_d)+1
+  
+  # replace infinity with large numbers
+  sds = sqrt(diag(Sigma))
+  lb_inf_idx = is.infinite(lb)
+  ub_inf_idx = is.infinite(ub)
+  
+  lb[lb_inf_idx] = -10 * sds[lb_inf_idx]
+  ub[ub_inf_idx] = 10 * sds[ub_inf_idx]
+  
+  prob = hccmvn::hccmvn(
+    covM = Sigma[odr, odr],
+    a = (lb - mu)[odr],
+    b = (ub - mu)[odr],
+    m = problem_d, 
+    d = 1, 
+    tol = 1e-4)
+  
+  return(prob)
 }
 
+# bivariate conditioning -------------------------------------------------
+bvcdn = function(mu, Sigma, lb, ub, tol = 1e-4) {
+  
+  problem_d = length(mu)
+  odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, problem_d)+1
+  
+  # replace infinity with large numbers
+  sds = sqrt(diag(Sigma))
+  lb_inf_idx = is.infinite(lb)
+  ub_inf_idx = is.infinite(ub)
+  
+  lb[lb_inf_idx] = -10 * sds[lb_inf_idx]
+  ub[ub_inf_idx] = 10 * sds[ub_inf_idx]
+  
+  prob = hccmvn::hccmvn(
+    covM = Sigma[odr, odr],
+    a = (lb - mu)[odr],
+    b = (ub - mu)[odr],
+    m = problem_d, 
+    d = 2, 
+    tol = 1e-4)
+  
+  return(prob)
+}
+
+# d-variate conditioning --------------------------------------------------
+dvcdn = function(mu, Sigma, lb, ub, cond_size, tol = 1e-4) {
+  
+  problem_d = length(mu)
+  odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, problem_d)+1
+  
+  # replace infinity with large numbers
+  sds = sqrt(diag(Sigma))
+  lb_inf_idx = is.infinite(lb)
+  ub_inf_idx = is.infinite(ub)
+  
+  lb[lb_inf_idx] = -10 * sds[lb_inf_idx]
+  ub[ub_inf_idx] = 10 * sds[ub_inf_idx]
+  
+  prob = hccmvn::hccmvn(
+    covM = Sigma[odr, odr],
+    a = (lb - mu)[odr],
+    b = (ub - mu)[odr],
+    m = problem_d, 
+    d = cond_size, 
+    tol = 1e-4)
+  
+  return(prob)
+}
+
+# Hierarchical block conditioning -----------------------------------------
+
+# problem dimension should be equal to block size * 2^{int}
 hblkcdn = function(mu, Sigma, lb, ub, cond_size, block_size, tol = 1e-4) {
   problem_d = length(mu)
-  vorder = hccmvn::recurUniandBlkcmb(
-    covM = Sigma, a = lb - mu, b = ub - mu, bsz_ = block_size)
-  Sigma = Sigma[vorder, vorder]
-  lb = lb[vorder]
-  ub = ub[vorder]
-  mu = mu[vorder]
-  prob = hccmvn::hccmvn(Sigma, lb - mu, ub - mu, m=block_size, d=cond_size,
-                        tol=tol)
-  return(data.frame(
-    variable = "estimate",
-    value = prob
-  ))
+  odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, block_size)+1
+  
+  # replace infinity with large numbers
+  sds = sqrt(diag(Sigma))
+  lb_inf_idx = is.infinite(lb)
+  lb_inf_sign = sign(lb[lb_inf_idx])
+  ub_inf_idx = is.infinite(ub)
+  ub_inf_sign = sign(ub[ub_inf_idx])
+  
+  lb[lb_inf_idx] = lb_inf_sign * 10 * sds[lb_inf_idx]
+  ub[ub_inf_idx] = ub_inf_sign * 10 * sds[ub_inf_idx]
+  
+  prob = hccmvn::hccmvn(
+    covM = Sigma[odr, odr],
+    a = (lb - mu)[odr],
+    b = (ub - mu)[odr], 
+    m = block_size,
+    d = cond_size,
+    tol = tol)
+  
+  return(prob)
 }
 
 

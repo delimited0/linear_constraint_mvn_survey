@@ -78,58 +78,100 @@ library(ggplot2)
 library(ggrepel)
 library(shades)
 
+families = fread(here("sampling_method_directory.csv"))
+all_stats = merge(all_stats, families, by = "method")
+
 avg_stats = all_stats[,
                       .(
                         mean_rel_error = mean(abs((mc_est - mu) / mu)),
                         ess_per_sec = mean(ess / runtime),
                         runtime = first(runtime)
                       ), 
-                      by = list(method, problem_d)]
+                      by = list(method, problem_d, family)]
 
 n_methods <- length(unique(avg_stats$method))
 
-method_colors <- setNames(viridis::viridis_pal(option = "D")(n_methods), 
-                          nm = unique(avg_stats$method))
-method_rgb = col2rgb(method_colors, )
-label_colors = rgb(t(method_rgb / 2), maxColorValue = 255, 
-                   names = colnames(method_rgb))
+# methods by shape
+shape_set = c(15:18, 7:14)
+method_shapes = setNames(shape_set[1:n_methods], nm = unique(all_stats$method))
 
-method_shapes = (0:14)[1:n_methods]
-names(method_shapes) = names(method_colors)
+# family by color
+n_family = length(unique(all_stats$family))
+family_colors = setNames(viridis::turbo(n_family),
+                         nm = unique(all_stats$family))
 
+# common plot style
 perf_dim_style = list(
   theme_bw(),
-  geom_text_repel(aes(label = label), force = 2),
-  guides(fill="none", color="none", shape="none"),
-  scale_color_manual(values = brightness(method_colors, delta(-.1))),
-  scale_shape_manual(values = method_shapes)
+  geom_text_repel(aes(label = label), 
+                  # color = "black", 
+                  max.overlaps = Inf,
+                  force = 10, 
+                  # xlim = c(0, 3000),
+                  nudge_x = 200),
+  guides(fill="none", 
+         # color="none",
+         shape="none", linetype="none"),
+  xlim(0, 4500),
+  # scale_color_manual(values = method_colors)
+  scale_color_manual(values = family_colors),
+  scale_shape_manual(values = method_shapes),
+  theme(legend.position = "bottom")
 )
 
 avg_stats[, label := ifelse(problem_d == max(problem_d), method, NA_character_),
           by = method]
 
-# mean estimation accuracy
-ggplot(avg_stats, aes(x = problem_d, y = mean_rel_error, 
-                      fill = method, color = method, shape = method)) +
-  geom_point(size=2) + geom_line(linetype=2) +
+# mean estimation accuracy ----
+mean_est_plot = ggplot(avg_stats, aes(x = problem_d, y = mean_rel_error, 
+                      color = family, shape = method)) +
+  geom_point(size=3) + geom_line(linetype=2) +
   perf_dim_style +
   scale_y_log10() +
   labs(x = "Problem dimension", y = "Mean marginal relative error")
 
+ggsave(
+  mean_est_plot,
+  filename = "mean_est_plot.pdf",
+  device = "pdf",
+  path =  here("plots", "sample_cmpdsymm_orthant"),
+  width = 6,
+  height = 5
+)
+
 # mean effective samples / second
-ggplot(avg_stats, aes(x = problem_d, y = ess_per_sec,
-                      fill = method, color = method, shape = method)) +
-  geom_point() + geom_line() +
+esspersec_plot = ggplot(avg_stats, aes(x = problem_d, y = ess_per_sec,
+                      color = family, shape = method)) +
+  geom_point(size=3) + geom_line(linetype=2) +
   perf_dim_style +
   scale_y_log10() +
   labs(x = "Problem dimension", y = "Effective samples per second")
 
+ggsave(
+  esspersec_plot,
+  filename = "essps_plot.pdf",
+  device = "pdf",
+  path =  here("plots", "sample_cmpdsymm_orthant"),
+  width = 6,
+  height = 5
+)
+
 # runtime
-ggplot(avg_stats, aes(x = problem_d, y = runtime,
-                      fill = method, color = method)) +
-  geom_point() + geom_line() +
+runtime_plot = ggplot(avg_stats, aes(x = problem_d, y = runtime,
+                      color = family, shape = method)) +
+  geom_point(size=3) + geom_line(linetype=2) +
   perf_dim_style +
+  scale_y_log10() +
   labs(x = "Problem dimension", y = "Seconds")
+
+ggsave(
+  runtime_plot,
+  filename = "runtime_plot.pdf",
+  device = "pdf",
+  path =  here("plots", "sample_cmpdsymm_orthant"),
+  width = 6,
+  height = 5
+)
 
 
 

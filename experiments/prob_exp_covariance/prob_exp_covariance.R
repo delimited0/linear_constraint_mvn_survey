@@ -86,10 +86,12 @@ progressr::with_progress({
       
       # problem-dimension specific settings
       locs = matrix(runif(2*d), ncol = 2)
+      idx = tlrmvnmvt::zorder(locs)
+      Sigma = exp(-rdist(locs))
       
       problem_params = list(
         mu = rep(0, d),
-        Sigma = exp(-rdist(locs)),
+        Sigma = Sigma[idx, idx],
         lb = rep(-Inf, d),
         ub = rnorm(d, mean = 4, sd = .5)
       )

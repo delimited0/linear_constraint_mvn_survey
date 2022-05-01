@@ -1,0 +1,11 @@
+method,family
+ehmc,hmc
+rhmc,hmc
+gibbs_prec,gibbs
+gibbs_cov,gibbs
+gibbs_ry2004,gibbs
+gibbs_lg2015,gibbs
+ghk,importance
+met,importance
+epess,ess
+liness,ess
