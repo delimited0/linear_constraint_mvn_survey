@@ -33,8 +33,9 @@ if (is.null(n_blas_threads)) n_blas_threads = 1
 
 # hard coded arguments for debugging --------------------------------------
 # method_conf = "experiments/prob_cmpdsymm_orthant/method_conf.json"
-# dim_conf = "experiments/prob_cmpdsymm_orthant/dim_conf.json"
+# dim_conf = "experiments/prob_cmpdsymm_orthant/test_dim_conf.json"
 # result_path = "experiments/prob_cmpdsymm_orthant/test_results/"
+# corr = .5
 
 # libraries ---------------------------------------------------------------
 library(here)

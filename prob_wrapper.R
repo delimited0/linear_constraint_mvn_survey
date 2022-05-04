@@ -21,6 +21,8 @@ tlr <- function(mu, Sigma, lb, ub, n_batch_mc, block_size = NULL,
     m = block_size
   tlr <- tlrmvnmvt::TLRQMC(N = n_batch_mc, m = m, epsl = epsl)
   prob <- tlrmvnmvt::pmvn(lb, ub, mu, Sigma, algorithm = tlr)
+  
+  attr(prob, "block_size") = m
   return(prob)
 }
 
@@ -77,12 +79,53 @@ met = function(mu, Sigma, lb, ub, n_batch_mc, n_est = 10) {
 }
 
 
+# Hierarchical decomposition QMC ------------------------------------------
+# default block size is largest factor of problem dim less than sqrt(dim)
+hmvn = function(mu, Sigma, lb, ub, n_batch_mc, block_size = NULL, n_est = 10, 
+                tol = 1e-4) {
+  
+  d = length(mu)
+  
+  d_factors = numbers::divisors(d)
+  
+  if (is.null(block_size)) {
+    block_size = max(d_factors[d_factors <= sqrt(d)])
+  }
+  
+  stopifnot(block_size >= 4)  # minimum block size
+  ratio = d / block_size
+  stopifnot(bitwAnd(ratio, ratio-1) == 0)  # d / block_size must be power of 2
+  
+  # odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, block_size)
+  
+  ests = rep(NA, n_est)
+  for (i in 1:n_est) {
+    ests[i] = hccmvn::hmvn(
+      # covM = Sigma[odr, odr],
+      # a = (lb - mu)[odr],
+      # b = (ub - mu)[odr],
+      covM = Sigma,
+      a = lb - mu,
+      b = ub - mu,
+      m = block_size,
+      N = n_batch_mc,
+      ns = 1,
+      tol = tol)
+  }
+
+  prob = mean(ests)
+  attr(prob, "error") = sd(ests) / sqrt(n_est)
+  attr(prob, "block_size") = 4
+  
+  return(prob)
+}
+
 
 # univariate conditioning -------------------------------------------------
 uvcdn = function(mu, Sigma, lb, ub, tol = 1e-4) {
   
   problem_d = length(mu)
-  odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, problem_d)+1
+  odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, problem_d)
   
   # replace infinity with large numbers
   sds = sqrt(diag(Sigma))
@@ -107,15 +150,17 @@ uvcdn = function(mu, Sigma, lb, ub, tol = 1e-4) {
 bvcdn = function(mu, Sigma, lb, ub, tol = 1e-4) {
   
   problem_d = length(mu)
-  odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, problem_d)+1
+  odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, problem_d)
   
   # replace infinity with large numbers
   sds = sqrt(diag(Sigma))
   lb_inf_idx = is.infinite(lb)
+  lb_inf_sign = sign(lb[lb_inf_idx])
   ub_inf_idx = is.infinite(ub)
+  ub_inf_sign = sign(ub[ub_inf_idx])
   
-  lb[lb_inf_idx] = -10 * sds[lb_inf_idx]
-  ub[ub_inf_idx] = 10 * sds[ub_inf_idx]
+  lb[lb_inf_idx] = lb_inf_sign * 10 * sds[lb_inf_idx]
+  ub[ub_inf_idx] = ub_inf_sign * 10 * sds[ub_inf_idx]
   
   prob = hccmvn::hccmvn(
     covM = Sigma[odr, odr],
@@ -132,15 +177,17 @@ bvcdn = function(mu, Sigma, lb, ub, tol = 1e-4) {
 dvcdn = function(mu, Sigma, lb, ub, cond_size, tol = 1e-4) {
   
   problem_d = length(mu)
-  odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, problem_d)+1
+  odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, problem_d)
   
   # replace infinity with large numbers
   sds = sqrt(diag(Sigma))
   lb_inf_idx = is.infinite(lb)
+  lb_inf_sign = sign(lb[lb_inf_idx])
   ub_inf_idx = is.infinite(ub)
+  ub_inf_sign = sign(ub[ub_inf_idx])
   
-  lb[lb_inf_idx] = -10 * sds[lb_inf_idx]
-  ub[ub_inf_idx] = 10 * sds[ub_inf_idx]
+  lb[lb_inf_idx] = lb_inf_sign * 10 * sds[lb_inf_idx]
+  ub[ub_inf_idx] = ub_inf_sign * 10 * sds[ub_inf_idx]
   
   prob = hccmvn::hccmvn(
     covM = Sigma[odr, odr],
@@ -156,9 +203,22 @@ dvcdn = function(mu, Sigma, lb, ub, cond_size, tol = 1e-4) {
 # Hierarchical block conditioning -----------------------------------------
 
 # problem dimension should be equal to block size * 2^{int}
-hblkcdn = function(mu, Sigma, lb, ub, cond_size, block_size, tol = 1e-4) {
+hblkcdn = function(mu, Sigma, lb, ub, cond_size, block_size = NULL,
+                   tol = 1e-4) {
+  
   problem_d = length(mu)
-  odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, block_size)+1
+  
+  d_factors = numbers::divisors(problem_d)
+  
+  if (is.null(block_size)) {
+    block_size = max(d_factors[d_factors <= sqrt(problem_d)])
+  }
+  
+  stopifnot(block_size >= 4)  # minimum block size
+  ratio = problem_d / block_size
+  stopifnot(bitwAnd(ratio, ratio-1) == 0)  # d / block_size must be power of 2
+  
+  odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, block_size)
   
   # replace infinity with large numbers
   sds = sqrt(diag(Sigma))
@@ -178,6 +238,7 @@ hblkcdn = function(mu, Sigma, lb, ub, cond_size, block_size, tol = 1e-4) {
     d = cond_size,
     tol = tol)
   
+  attr(prob, "block_size") = block_size
   return(prob)
 }
 

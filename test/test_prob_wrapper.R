@@ -1,6 +1,6 @@
 source("prob_wrapper.R")
 
-n = 1000
+  n = 1000
 d = 16
 mu = rep(0, d)
 Sigma = .5*diag(d) + .5*rep(1, d) %*% t(rep(1, d))
@@ -21,10 +21,12 @@ lcg(mu, Sigma, lb, ub,
 
 met(mu, Sigma, lb, ub, n_batch_mc = n, n_est = 10)
 
+hmvn(mu, Sigma, lb, ub, n_batch_mc = 1000)
+
 uvcdn(mu, Sigma, lb, ub)
 dvcdn(mu, Sigma, lb, ub, 4)
 
-hblkcdn(mu, Sigma, lb, ub, 4, 4)
+hblkcdn(mu, Sigma, lb, ub, cond_size = 4)
 
 
 # Fernandez 2007 ----------------------------------------------------------
@@ -40,6 +42,9 @@ tlr(mu, Sigma, lb, ub, n_batch_mc = n)
 met(mu, Sigma, lb, ub, n_batch_mc = n, n_est = 10)
 TruncatedNormal::pmvnorm(mu, Sigma, lb, ub, tyep = "qmc")
 
+# crashes!
+hmvn(mu, Sigma, lb, ub, 8, 1000)
+
 
 # special conditioning tests ----------------------------------------------
 
@@ -53,4 +58,45 @@ ub = rep(Inf, d)
 
 bvcdn(mu, Sigma, lb, ub)
 
-hblkcdn(mu, Sigma, lb, ub, cond_size = 2, block_size = )#  patrick stinks
+hblkcdn(mu, Sigma, lb, ub, cond_size = 4)#  patrick stinks
+
+
+# what makes hmvn crash ---------------------------------------------------
+
+d = 10
+mu = rep(0, d)
+Sigma = .5*diag(d) + .5*rep(1, d) %*% t(rep(1, d))
+lb = rep(0, d)
+ub = rep(Inf, d)
+
+hmvn(mu, Sigma, lb, ub, n_batch_mc = 1000)
+hblkcdn(mu, Sigma, lb, ub, 4)
+
+d = 50
+mu = rep(0, d)
+Sigma = .5*diag(d) + .5*rep(1, d) %*% t(rep(1, d))
+lb = rep(0, d)
+ub = rep(Inf, d)
+hmvn(mu, Sigma, lb, ub, n_batch_mc = 1000)
+hblkcdn(mu, Sigma, lb, ub, 4)
+
+d = 64
+mu = rep(0, d)
+Sigma = .5*diag(d) + .5*rep(1, d) %*% t(rep(1, d))
+lb = rep(0, d)
+ub = rep(Inf, d)
+hmvn(mu, Sigma, lb, ub, n_batch_mc = 1000)
+hblkcdn(mu, Sigma, lb, ub, 4)
+
+d = 1024
+mu = rep(0, d)
+Sigma = .5*diag(d) + .5*rep(1, d) %*% t(rep(1, d))
+lb = rep(0, d)
+ub = rep(Inf, d)
+
+hmvn(mu, Sigma, lb, ub, n_batch_mc = 1000)
+hblkcdn(mu, Sigma, lb, ub, cond_size = 4)
+
+
+
+
