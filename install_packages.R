@@ -8,14 +8,24 @@ custom_pkgs = c(
   "met",
   "epmgpr",
   "tmg",
-  "fftwtools"
+  "fftwtools",
+  "hccmvn"
 )
 
 deps = renv::dependencies()
 cran_pkgs = setdiff(unique(deps$Package), custom_pkgs)
 
 # install packages from CRAN necessary to run experiments
-renv::install(cran_pkgs)
+for (pkg in cran_pkgs) {
+  
+  find_path = find.package(pkg, quiet=TRUE)  
+  
+  if (length(find_path) == 0) {  # no such package
+    install.packages(pkg)
+  }
+}
+
+# renv::install(cran_pkgs)
 
 
 
