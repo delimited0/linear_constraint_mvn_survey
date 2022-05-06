@@ -81,3 +81,17 @@ prob = hccmvn::hccmvn(covM = Sigma, a = lb_approx, b = ub, m = d, d = 4, tol = 1
 prob
 
 tlr(mu, Sigma, lb, ub, n_batch_mc = 1000)
+
+
+# non square sizes --------------------------------------------------------
+source("prob_wrapper.R")
+d = 20
+mu = rep(0, d)
+Sigma = .5*diag(d) + .5*rep(1, d) %*% t(rep(1, d))
+lb = rep(0, d)
+ub = rep(Inf, d)
+
+uvcdn(mu, Sigma, lb, ub)
+bvcdn(mu, Sigma, lb, ub)
+dvcdn(mu, Sigma, lb, ub, cond_size = 4)
+
