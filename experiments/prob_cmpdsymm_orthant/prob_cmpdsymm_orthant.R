@@ -55,14 +55,15 @@ dimensions = jsonlite::read_json(dim_conf, simplifyVector = TRUE)
 if (!dir.exists(result_path)) dir.create(result_path)
 
 # parallel set up ---------------------------------------------------------
-RhpcBLASctl::blas_set_num_threads(1)  # no hyperthreading in BLAS
-RhpcBLASctl::omp_set_num_threads(1)
+RhpcBLASctl::blas_set_num_threads(n_blas_threads)  # no hyperthreading in BLAS
+RhpcBLASctl::omp_set_num_threads(n_blas_threads)
 doFuture::registerDoFuture()
 future::plan(future::multicore, workers = n_cores)
 
 # start up summary --------------------------------------------------------
 print(paste0("Running compound symmetric orthant probability estimation with ",
-             future::nbrOfWorkers(), " workers."))
+             future::nbrOfWorkers(), " workers, each with ",
+             RhpcBLASctl::blas_get_num_procs(), " threads"))
 print(paste0("Comparing ", nrow(methods), " methods:"))
 sapply(methods, function(x) x$method)
 print(paste0("Evaluating dimensions ", 

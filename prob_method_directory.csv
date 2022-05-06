@@ -1,0 +1,12 @@
+method,family,sov,hblock
+sov,sov,TRUE,FALSE
+uvcdn,conditioning,TRUE,FALSE
+bvcdn,conditioning,TRUE,FALSE
+lcg,lcg,FALSE,FALSE
+epmgp,ep,FALSE,FALSE
+ghk,is,TRUE,FALSE
+met,is,TRUE,FALSE
+hmvn,hblock,TRUE,TRUE
+hblkcdn,hblock,TRUE,TRUE
+dvcdn,conditioning,TRUE,FALSE
+tlr,tlr,TRUE,FALSE

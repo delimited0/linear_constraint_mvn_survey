@@ -1,0 +1,29 @@
+[
+  {
+    "method": "uvcdn"
+  },
+  {
+    "method": "bvcdn"
+  },
+  {
+    "method": "dvcdn",
+    "parameters":
+      {
+        "cond_size": 4
+      }
+  },
+  {
+    "method": "hblkcdn",
+    "parameters":
+      {
+        "cond_size": 4
+      }
+  },
+  {
+    "method": "hmvn",
+    "parameters": 
+    {
+      "n_batch_mc": 1000
+    }
+  }
+]

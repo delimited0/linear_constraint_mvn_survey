@@ -18,6 +18,8 @@ Options:
 
 opts = docopt::docopt(doc, version = 'prob_exp_covariance 1.0')
 
+# Experiment from section 6.2, Genton et al 2018
+
 method_conf = opts$method_conf
 dim_conf = opts$dim_conf
 dep = as.numeric(opts$dep)
@@ -112,6 +114,7 @@ progressr::with_progress({
       
       attr(result, "method") = method$method
       attr(result, "runtime") = elapsed$toc - elapsed$tic
+      attr(result, "d") = d
       
       # handle output directories
       method_result_path = 

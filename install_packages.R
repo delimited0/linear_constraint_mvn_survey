@@ -1,5 +1,8 @@
 # must install renv first ...
-install.packages("renv")
+find_path = find.package("renv", quiet=TRUE)
+if (length(find_path) == 0) 
+  install.packages("renv")
+
 
 # figure out which packages are from CRAN, which from github
 custom_pkgs = c(

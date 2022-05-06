@@ -6,4 +6,5 @@ Rscript experiments/prob_cmpdsymm_orthant/prob_cmpdsymm_orthant.R \
 --corr=.5 \
 --result_path=experiments/prob_cmpdsymm_orthant/test_results \
 --seed=2022 \
---n_cores=4
+--n_cores=1 \
+--n_blas_threads=4
