@@ -1,7 +1,7 @@
 'prob_cmpdsymm_orthant
 
 Usage:
-  prob_cmpdsymm_orthant.R (--method_conf=<method_conf>) (--dim_conf=<dim_conf>) (--corr=<corr>) (--result_path=<result_path>) [--seed=seed] [--n_cores=n_cores] [--n_blas_threads=n_blas_threads]
+  prob_cmpdsymm_orthant.R (--method_conf=<method_conf>) (--dim_conf=<dim_conf>) (--corr=<corr>) (--result_path=<result_path>) [--n_reps=n_reps] [--seed=seed] [--n_cores=n_cores] [--n_blas_threads=n_blas_threads]
   prob_cmpdsymm_orthant.R (-h|--help)
 
 Options:
@@ -10,7 +10,7 @@ Options:
   --dim_conf=<dim_conf>  Dimension configuration.
   --corr=<corr> Correlation.
   --result_path=<result_path>  Configuration specific sampler output.
-  --reps=<reps>  Number of repetitions.
+  --n_reps=<reps>  Number of repetitions.
   --seed=seed  Seed.
   --n_cores=n_cores  Number of cores.
   --n_blas_threads=n_blas_threads  Number of BLAS threads.
@@ -22,6 +22,7 @@ method_conf = opts$method_conf
 dim_conf = opts$dim_conf
 corr = as.numeric(opts$corr)
 result_path = opts$result_path
+n_reps = opts$n_reps
 seed = as.numeric(opts$seed)
 n_cores = as.numeric(opts$n_cores)
 n_blas_threads = as.numeric(opts$n_blas_threads)
@@ -51,6 +52,9 @@ source(here("prob_wrapper.R"))
 methods = jsonlite::read_json(method_conf, simplifyVector = FALSE)
 dimensions = jsonlite::read_json(dim_conf, simplifyVector = TRUE)
 
+n_methods = length(methods)
+n_dims = length(dimensions)
+
 # setup output directories -------------------------------------------
 if (!dir.exists(result_path)) dir.create(result_path)
 
@@ -64,26 +68,25 @@ future::plan(future::multicore, workers = n_cores)
 print(paste0("Running compound symmetric orthant probability estimation with ",
              future::nbrOfWorkers(), " workers, each with ",
              RhpcBLASctl::blas_get_num_procs(), " threads"))
-print(paste0("Comparing ", nrow(methods), " methods:"))
+print(paste0("Comparing ", n_methods, " methods:"))
 sapply(methods, function(x) x$method)
 print(paste0("Evaluating dimensions ", 
              paste0(dimensions, collapse = ", ")))
+print(paste0(n_reps, " repetitions"))
 
 # run simulation ----------------------------------------------------------
-settings = expand.grid(method = methods, dimension = dimensions)
-n_settings = nrow(settings)
+# settings = expand.grid(method = methods, dimension = dimensions)
+# n_settings = nrow(settings)
 
-progressr::handlers("progress")
-progressr::with_progress({
-  p = progressr::progressor(along = 1:(n_settings))
+handlers("progress")
+with_progress({
+  p = progressor(along = 1:(n_dims*n_methods))
   
-  results = foreach(i = 1:n_settings, .inorder = FALSE, .options.RNG = seed,
-          .export = ls(globalenv()), .errorhandling = "remove") %dorng% 
-    {
-      method = settings[[i, "method"]]
-      d = settings[[i, "dimension"]]
+  for (method in methods) {
+    
+    for (d in dimensions) {
       
-      p(message = sprintf("%s, dimension %d", method, d))
+      p(message = sprintf("Computing %s, dimension %d", method, d))
       
       # problem-dimension specific settings
       problem_params = list(
@@ -93,23 +96,28 @@ progressr::with_progress({
         ub = rep(Inf, d)
       )
       
-      # method specific settings
-      param_string = paste(
-        names(method$parameters),
-        method$parameters, 
-        sep = "=", collapse = ", "
-      )
-      
       # all input arguments
       params = c(problem_params, method$parameters)
       
-      tictoc::tic()
-      result = do.call(method$method, params)
-      elapsed = tictoc::toc(quiet = TRUE)
-      
-      attr(result, "method") = method$method
-      attr(result, "runtime") = elapsed$toc - elapsed$tic
-      attr(result, "d") = d
+      # r = progressor(along = 1:n_reps)
+      results = 
+        foreach(i = 1:n_reps, .inorder = FALSE, .options.RNG = seed,
+                # .export = ls(globalenv()), 
+                .errorhandling = "remove") %dorng% 
+        {
+          # r(message = sprintf("Repetition %d", d))
+          
+          tictoc::tic()
+          result = do.call(method$method, params)
+          elapsed = tictoc::toc(quiet = TRUE)
+          
+          attr(result, "method") = method$method
+          attr(result, "runtime") = elapsed$toc - elapsed$tic
+          attr(result, "d") = d
+          attr(result, "rep") = i
+          
+          return(result)
+        }
       
       # handle output directories
       method_result_path = 
@@ -118,8 +126,55 @@ progressr::with_progress({
         dir.create(method_result_path, recursive=TRUE)
       
       # save result
-      saveRDS(result, paste0(method_result_path, "d=", d))
-    }
-}, enable = TRUE)
+      saveRDS(results, paste0(method_result_path, "d=", d))
+    }  
+  }
+}, enable=TRUE)
+  
+  
+#   results = foreach(i = 1:n_settings, .inorder = FALSE, .options.RNG = seed,
+#           .export = ls(globalenv()), .errorhandling = "remove") %dorng% 
+#     {
+#       method = settings[[i, "method"]]
+#       d = settings[[i, "dimension"]]
+#       
+#       p(message = sprintf("%s, dimension %d", method, d))
+#       
+#       # problem-dimension specific settings
+#       problem_params = list(
+#         mu = rep(0, d),
+#         Sigma = corr * diag(d) + (1-corr) * rep(1, d) %*% t(rep(1, d)),
+#         lb = rep(0, d),
+#         ub = rep(Inf, d)
+#       )
+#       
+#       # method specific settings
+#       param_string = paste(
+#         names(method$parameters),
+#         method$parameters, 
+#         sep = "=", collapse = ", "
+#       )
+#       
+#       # all input arguments
+#       params = c(problem_params, method$parameters)
+#       
+#       tictoc::tic()
+#       result = do.call(method$method, params)
+#       elapsed = tictoc::toc(quiet = TRUE)
+#       
+#       attr(result, "method") = method$method
+#       attr(result, "runtime") = elapsed$toc - elapsed$tic
+#       attr(result, "d") = d
+#       
+#       # handle output directories
+#       method_result_path = 
+#         paste0(result_path, "/corr=", corr, "/", method$method, "/")
+#       if (!dir.exists(method_result_path)) 
+#         dir.create(method_result_path, recursive=TRUE)
+#       
+#       # save result
+#       saveRDS(result, paste0(method_result_path, "d=", d))
+#     }
+# }, enable = TRUE)
 
 

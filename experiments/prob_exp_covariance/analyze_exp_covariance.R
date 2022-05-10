@@ -85,13 +85,15 @@ perf_dim_style = list(
 ggplot(all_stats, aes(x = d, y = runtime, shape = method, color = family)) +
   geom_point(size = 2) + geom_line(linetype = 2) +
   perf_dim_style +
-  scale_y_log10()
+  scale_y_log10(labels = function(x) format(x, scientific=FALSE)) +
+  labs(x = "Dimension", y = "Runtime (seconds)")
 
 # accuracy ----
 ggplot(all_stats, aes(x = d, y = estimate, shape = method, color = family)) +
   geom_point(size = 2) + geom_line(linetype = 2) +
   geom_errorbar(aes(ymin = estimate - 2*error, ymax = estimate + 2*error)) +
-  perf_dim_style
+  perf_dim_style +
+  labs(x = "Dimension", y = "Estimate")
   
 
 
