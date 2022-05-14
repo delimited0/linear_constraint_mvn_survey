@@ -95,3 +95,17 @@ uvcdn(mu, Sigma, lb, ub)
 bvcdn(mu, Sigma, lb, ub)
 dvcdn(mu, Sigma, lb, ub, cond_size = 4)
 
+
+# univariate reordering safety --------------------------------------------
+
+source("prob_wrapper.R")
+d = 10
+mu = rep(0, d)
+Sigma = .5*diag(d) + .5*rep(1, d) %*% t(rep(1, d))
+lb = rep(0, d)
+ub = rep(Inf, d)
+
+uvcdn(mu, Sigma, lb, ub)
+bvcdn(mu, Sigma, lb, ub)
+
+
