@@ -1,6 +1,10 @@
 [
   {
-    "method": "liness"
+    "method": "gibbs_ry2004",
+    "parameters": 
+    {
+      "tuvn_sampler": "lg2015"
+    }
   },
   {
     "method": "gibbs_lg2015",
@@ -8,5 +12,22 @@
     {
       "tuvn_sampler": "lg2015"
     }
+  },
+  {
+    "method": "ehmc"
+  },
+  {
+    "method": "liness"
+  },
+  {
+    "method": "epess",
+    "parameters":
+      {
+        "n_perthresh": 1,
+        "n_slices": 1
+      }
+  },
+  {
+    "method": "rsm"
   }
 ]

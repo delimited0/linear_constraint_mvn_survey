@@ -68,7 +68,6 @@ probit_mcmc_glasso = function(X, Y, sampler, sampler_params, penalty = .01,
                             initial = initial)
       params = c(problem_params, sampler_params)
       
-      browser()
       samples = do.call(sampler, params)
       
       mc_est = matrix(0, nrow = n_choices, ncol = n_choices)

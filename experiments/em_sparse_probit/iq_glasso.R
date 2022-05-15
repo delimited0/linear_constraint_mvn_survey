@@ -74,7 +74,7 @@ cat("\n")
 # run simulation ----------------------------------------------------------
 
 n_obs = 2000
-p = 1
+d = 1
 n_mc_samples = 50
 
 true_precisions = list(
@@ -96,13 +96,13 @@ for (problem_idx in 1:length(true_precisions)) {
   experiment_name = names(true_precisions)[problem_idx]
   
   # true parameter values
-  coef_true = rep(0, p)
+  coef_true = rep(0, d)
   Prec_true = true_precisions[[problem_idx]]
   Sigma_true = solve(Prec_true)
   n_choices = nrow(Sigma_true)
   
   Sigma_init = diag(n_choices)
-  beta_init = rep(0, p)
+  beta_init = rep(0, d)
   
   # regularization amount
   penalty = sqrt(log(n_choices) / n_obs) * .1
@@ -120,18 +120,18 @@ for (problem_idx in 1:length(true_precisions)) {
     print( paste0("--- ", method, "---") )
     
     progressr::with_progress({
-      p = progressr::progressor(along = 1:n_reps)    
+      progger = progressr::progressor(along = 1:n_reps)    
       
       foreach(i = 1:n_reps, .inorder = FALSE, .options.RNG = seed,
               .export = ls(globalenv()), .errorhandling = "remove") %dorng% {
                 
-                p(sprintf("Problem %s, method: %s, rep=%i", 
+                progger(sprintf("Problem %s, method: %s, rep=%i", 
                           experiment_name, method, i))
                 
                 # simulate data
                 X = lapply(1:n_obs, function(i) {
-                  matrix(runif(n_choices * p, min = -.5, max = .5),
-                         nrow = n_choices, ncol = p)
+                  matrix(runif(n_choices * d, min = -.5, max = .5),
+                         nrow = n_choices, ncol = d)
                 })
                 Z = t(sapply(X, function(x) {
                   mvtnorm::rmvnorm(1, x %*% coef_true, Sigma_true) 
