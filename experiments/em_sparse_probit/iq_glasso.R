@@ -1,7 +1,7 @@
 'iq_glasso
 
 Usage:
-  iq_glasso.R (--method_conf=<method_conf>) (--output_path=<output_path>) (--n_reps=<n_reps>) [--seed=seed] [--n_cores=n_cores] [--n_blas_threads=n_blas_threads]
+  iq_glasso.R (--method_conf=<method_conf>) (--output_path=<output_path>) (--n_reps=<n_reps>) [--n_mc_samples=n_mc_samples] [--max_iter=max_iter] [--seed=seed] [--n_cores=n_cores] [--n_blas_threads=n_blas_threads]
   iq_glasso.R (-h|--help)
 
 Options:
@@ -9,6 +9,8 @@ Options:
   --method_conf=<method_conf>  Method configuration.
   --output_path=<output_path>  Configuration specific sampler output.
   --n_reps=<reps>  Number of repetitions.
+  --n_mc_samples=n_mc_samples  Number of samples for Monte Carlo estimates.
+  --max_iter=max_iter  Maximum EM iterations.
   --seed=seed  Seed.
   --n_cores=n_cores  Number of cores.
   --n_blas_threads=n_blas_threads  Number of threads for multithread BLAS
@@ -22,17 +24,23 @@ seed = as.numeric(opts$seed)
 n_cores = as.numeric(opts$n_cores)
 n_blas_threads = as.numeric(opts$n_blas_threads)
 n_reps = as.numeric(opts$n_reps)
+n_mc_samples = as.numeric(opts$n_mc_samples)
+max_iter = as.numeric(opts$max_iter)
 
 # default arguments -------------------------------------------------------
 if (is.null(seed)) seed = 2022
 if (is.null(n_cores)) n_cores = 1
 if (is.null(n_blas_threads)) n_blas_threads = 1
+if (is.null(n_mc_samples)) n_mc_samples = 50
+if (is.null(max_iter)) max_iter = 200
 
 # hard coded arguments for debugging --------------------------------------
 # method_conf = "experiments/em_sparse_probit/method_conf.json"
 # output_path = "experiments/em_sparse_probit/output"
 # problem_idx = 1
 # j = 1
+# n_mc_samples = 5
+# max_iter = 10
 
 
 # libraries ---------------------------------------------------------------
@@ -145,12 +153,12 @@ for (problem_idx in 1:length(true_precisions)) {
                   penalty = penalty, 
                   Sigma_init = Sigma_init, beta_init = beta_init, 
                   corr = FALSE, pen_diag = FALSE, 
-                  n_mc_samples = n_mc_samples)
+                  n_mc_samples = n_mc_samples, max_iter = max_iter)
                 elapsed = toc(quiet=TRUE)
                 
                 attr(result, "method") = method
                 attr(result, "runtime") = elapsed$toc - elapsed$tic
-                attr(result, "parameters") = 
+                attr(result, "parameters") = params
                 
                 saveRDS(result, paste0(method_output_path, "rep=", i))
               }

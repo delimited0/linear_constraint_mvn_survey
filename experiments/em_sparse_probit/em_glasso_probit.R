@@ -110,9 +110,9 @@ probit_mcmc_glasso = function(X, Y, sampler, sampler_params, penalty = .01,
   }
   
   # keep only elements before convergence
-  glasso_llik = glasso_llik[1:iter]
-  Sigma_history = Sigma_history[1:iter]
-  Prec_history = Prec_history[1:iter]
+  glasso_llik = glasso_llik[1:(iter-1)]
+  Sigma_history = Sigma_history[1:(iter-1)]
+  Prec_history = Prec_history[1:(iter-1)]
   
   return(list(
     Sigma = Sigma,
@@ -120,7 +120,6 @@ probit_mcmc_glasso = function(X, Y, sampler, sampler_params, penalty = .01,
     beta = beta,
     iters = iter,
     gllaso_llik = glasso_llik,
-    algorithm = algorithm,
     n_mc_samples = n_mc_samples,
     Sigma_history = Sigma_history,
     Prec_history = Prec_history

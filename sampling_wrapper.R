@@ -39,7 +39,7 @@ ehmc <- function(n, mu, Sigma, lb, ub, A = diag(length(mu)), initial, burnin = 0
   r <- as.vector(Prec %*% mu)
   inf_idx <- c(is.infinite(lb), is.infinite(ub))
   f <- rbind(A, -A)[!inf_idx, , drop = FALSE]
-  g <- c(mu - lb, mu + ub)[!inf_idx]
+  g <- c(lb, ub)[!inf_idx]
   tmg::rtmg(n, Prec, r, initial, f, g, burn.in = burnin)
 }
 
@@ -49,6 +49,23 @@ rsm = function(n, mu, Sigma, lb, ub, A = NULL, initial = NULL) {
 
 met = function(n, mu, Sigma, lb, ub, A = NULL, initial = NULL) {
   met::rtmvn(n, mu, Sigma, lb, ub, A)
+}
+
+met_mp = function(n, mu, Sigma, lb, ub, A, initial = NULL) {
+  
+  G = MASS::ginv(A)
+  m = nrow(A)
+  Amu = A %*% mu
+  lb_t = lb - Amu
+  ub_t = ub - Amu
+  Sigma_t = A %*% Sigma %*% t(A)
+  mu_t = rep(0, m)
+  
+  z = met::rtmvn(n, mu_t, Sigma_t, lb_t, ub_t)
+  
+  x = G %*% t(z + matrix(rep(Amu, n), nrow = n, byrow = TRUE))
+  
+  return(t(x))
 }
 
 epess = function(n, mu, Sigma, lb, ub, A = NULL, initial, 
