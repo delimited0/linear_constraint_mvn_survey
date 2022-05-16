@@ -1,18 +1,5 @@
 [
   {
-    "method": "uvcdn"
-  },
-  {
-    "method": "bvcdn"
-  },
-  {
-    "method": "dvcdn",
-    "parameters":
-    {
-      "cond_size": 4
-    }
-  },
-  {
     "method": "hblkcdn",
     "parameters":
       {
