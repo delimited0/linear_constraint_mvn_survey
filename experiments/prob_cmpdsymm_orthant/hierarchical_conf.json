@@ -1,5 +1,18 @@
 [
   {
+    "method": "uvcdn"
+  },
+  {
+    "method": "bvcdn"
+  },
+  {
+    "method": "dvcdn",
+    "parameters":
+    {
+      "cond_size": 4
+    }
+  },
+  {
     "method": "hblkcdn",
     "parameters":
       {
@@ -11,19 +24,6 @@
     "parameters": 
     {
       "n_batch_mc": 1000
-    }
-  },
-  {
-    "method": "uvcdn"
-  },
-  {
-    "method": "bvcdn"
-  },
-  {
-    "method": "dvcdn",
-    "parameters":
-    {
-      "cond_size": 4
     }
   }
 ]
