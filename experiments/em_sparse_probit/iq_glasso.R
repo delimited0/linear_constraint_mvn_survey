@@ -73,11 +73,14 @@ n_methods = length(methods)
 print(paste0("Running sparse covariance probit estimation small examples with ",
              future::nbrOfWorkers(), " workers, ", 
              n_blas_threads, " BLAS threads / worker."))
-print(paste0("Comparing ", n_methods, " methods"))
-print(sprintf("%d repetiions", n_reps))
 
+print(paste0("Comparing ", n_methods, " methods"))
 cat( paste0( sapply(methods, function(x) x$method) , collapse = ", ") )
 cat("\n")
+
+print(sprintf("%d repetitions", n_reps))
+
+handlers("progress")
 
 # run simulation ----------------------------------------------------------
 
@@ -131,13 +134,10 @@ for (problem_idx in 1:length(true_precisions)) {
       progger = progressr::progressor(along = 1:n_reps)    
       
       foreach(i = 1:n_reps, .inorder = FALSE, .options.RNG = seed,
-              .export = ls(globalenv()), .errorhandling = "remove") %dorng% {
-                
-                progger(sprintf("Problem %s, method: %s, rep=%i", 
-                          experiment_name, method, i))
+              .errorhandling = "remove") %dorng% {
                 
                 # simulate data
-                X = lapply(1:n_obs, function(i) {
+                X = lapply(1:n_obs, function(obs) {
                   matrix(runif(n_choices * d, min = -.5, max = .5),
                          nrow = n_choices, ncol = d)
                 })
@@ -161,6 +161,9 @@ for (problem_idx in 1:length(true_precisions)) {
                 attr(result, "parameters") = params
                 
                 saveRDS(result, paste0(method_output_path, "rep=", i))
+                
+                progger(sprintf("Problem %s, method: %s, rep=%i", 
+                                experiment_name, method, i))
               }
     }, enable = TRUE)
   }
