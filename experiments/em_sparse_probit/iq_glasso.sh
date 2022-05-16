@@ -5,7 +5,7 @@ Rscript experiments/em_sparse_probit/iq_glasso.R \
 --output_path=experiments/em_sparse_probit/output \
 --n_reps=18 \
 --n_mc_samples=50 \
---max_iter=100 \
+--max_iter=200 \
 --seed=2022 \
 --n_cores=18 \
 --n_blas_threads=1
