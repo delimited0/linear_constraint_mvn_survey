@@ -8,4 +8,4 @@ Rscript experiments/prob_cmpdsymm_orthant/prob_cmpdsymm_orthant.R \
 --n_reps=4 \
 --seed=2022 \
 --n_cores=4 \
---n_blas_threads=1
+--n_blas_threads=1 & disown

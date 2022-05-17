@@ -88,6 +88,12 @@ with_progress({
   
   for (method in methods) {
     
+    # handle output directories
+    method_result_path = 
+      paste0(result_path, "/corr=", corr, "/", method$method, "/")
+    if (!dir.exists(method_result_path)) 
+      dir.create(method_result_path, recursive=TRUE)
+    
     for (d in dimensions) {
       
       p(message = sprintf("Computing %s, dimension %d", method, d))
@@ -106,7 +112,7 @@ with_progress({
       # r = progressor(along = 1:n_reps)
       results = 
         foreach(i = 1:n_reps, .inorder = FALSE, .options.RNG = seed,
-                # .export = ls(globalenv()), 
+                .export = ls(globalenv()),
                 .errorhandling = "remove") %dorng% 
         {
           # r(message = sprintf("Repetition %d", d))
@@ -120,16 +126,12 @@ with_progress({
           attr(result, "d") = d
           attr(result, "rep") = i
           
+          # save result by repetition
+          # saveRDS(results, paste0(method_result_path, "d=", d, "_rep=", i))
           return(result)
         }
       
-      # handle output directories
-      method_result_path = 
-        paste0(result_path, "/corr=", corr, "/", method$method, "/")
-      if (!dir.exists(method_result_path)) 
-        dir.create(method_result_path, recursive=TRUE)
-      
-      # save result
+      # save results together
       saveRDS(results, paste0(method_result_path, "d=", d))
     }  
   }

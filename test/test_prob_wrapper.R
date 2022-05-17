@@ -24,7 +24,9 @@ met(mu, Sigma, lb, ub, n_batch_mc = n, n_est = 10)
 hmvn(mu, Sigma, lb, ub, n_batch_mc = 1000)
 
 uvcdn(mu, Sigma, lb, ub)
+bvcdn(mu, Sigma, lb, ub)
 dvcdn(mu, Sigma, lb, ub, 4)
+dvcdn(mu, Sigma, lb, ub, 16)
 
 hblkcdn(mu, Sigma, lb, ub, cond_size = 4)
 
@@ -95,6 +97,8 @@ mu = rep(0, d)
 Sigma = .5*diag(d) + .5*rep(1, d) %*% t(rep(1, d))
 lb = rep(0, d)
 ub = rep(Inf, d)
+
+dvcdn(mu, Sigma, lb, ub, 16)
 
 hmvn(mu, Sigma, lb, ub, n_batch_mc = 1000)
 hblkcdn(mu, Sigma, lb, ub, cond_size = 4)

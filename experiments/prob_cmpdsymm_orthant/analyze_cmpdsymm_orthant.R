@@ -28,17 +28,17 @@ for (i in 1:length(method_paths)) {
     # )
     
     est = readRDS(mr)
+    attributes(est) = NULL
     
     dt = data.table(
-      "estimate" = est,
-      "error" = sapply(est, function(e) attr(e, "error")),
+      "estimate" = c(est, recursive = TRUE),
+      "error" =  sapply(est, function(e) attr(e, "error")),
       "method" = sapply(est, function(e) attr(e, "method")),
       "runtime" = sapply(est, function(e) attr(e, "runtime")),
       "rep" = sapply(est, function(e) attr(e, "rep")),
       "d" = sapply(est, function(e) attr(e, "d"))
-    )  
+    ) 
     
-    return(dt)
   }), fill = TRUE)
 }
 
@@ -55,16 +55,25 @@ all_stats[, label := ifelse(d == max(d), method, NA_character_), by = method]
 
 all_stats[, rel_error := abs( estimate - (1 / (1+d)) ) / estimate]
 
+avg_stats = all_stats[, .(estimate = mean(estimate),
+                          runtime = mean(runtime),
+                          rel_error = mean(rel_error),
+                          se_estimate = sd(estimate) / sqrt(.N),
+                          se_runtime = sd(runtime) / sqrt(.N)),
+                      by = list(method, d)]
+avg_stats = merge(avg_stats, families, by = "method")
+
+avg_stats[, label := ifelse(d == max(d), method, NA_character_), by = method]
 
 # methods by shape
-n_methods = length(unique(all_stats$method))
+n_methods = length(unique(avg_stats$method))
 shape_set = c(15:18, 7:14)
-method_shapes = setNames(shape_set[1:n_methods], nm = unique(all_stats$method))
+method_shapes = setNames(shape_set[1:n_methods], nm = unique(avg_stats$method))
 
 # family by color
-n_family = length(unique(all_stats$family))
+n_family = length(unique(avg_stats$family))
 family_colors = setNames(viridis::turbo(n_family),
-                         nm = unique(all_stats$family))
+                         nm = unique(avg_stats$family))
 
 # common plot style
 perf_dim_style = list(
@@ -85,14 +94,15 @@ perf_dim_style = list(
 )
 
 # runtime -----
-ggplot(all_stats, aes(x = d, y = runtime, shape = method, color = family)) +
+ggplot(avg_stats, aes(x = d, y = runtime, shape = method, color = family)) +
   geom_point(size = 2) + geom_line(linetype = 2) +
+  geom_linerange(aes(ymin = runtime - 2*se_runtime, ymax = runtime + 2*se_runtime)) +
   perf_dim_style +
   scale_y_log10(labels = function(x) format(x, scientific=FALSE)) +
   labs(x = "Dimension", y = "Runtime (seconds)")
 
 # accuracy ----
-ggplot(all_stats, aes(x = d, y = rel_error, shape = method, color = family)) +
+ggplot(avg_stats, aes(x = d, y = rel_error, shape = method, color = family)) +
   geom_point(size = 2) + geom_line(linetype = 2) +
   perf_dim_style +
   scale_y_log10(labels = function(x) format(x, scientific=FALSE)) + 
