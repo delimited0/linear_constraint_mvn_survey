@@ -39,8 +39,8 @@ if (is.null(max_iter)) max_iter = 200
 # output_path = "experiments/em_sparse_probit/output"
 # problem_idx = 1
 # j = 1
-# n_mc_samples = 5
-# max_iter = 10
+# n_mc_samples = 10
+# max_iter = 300
 
 
 # libraries ---------------------------------------------------------------
@@ -152,13 +152,14 @@ for (problem_idx in 1:length(true_precisions)) {
                   sampler = method, sampler_params = params,
                   penalty = penalty, 
                   Sigma_init = Sigma_init, beta_init = beta_init, 
-                  corr = FALSE, pen_diag = FALSE, 
+                  corr = TRUE, pen_diag = FALSE, 
                   n_mc_samples = n_mc_samples, max_iter = max_iter)
                 elapsed = toc(quiet=TRUE)
                 
                 attr(result, "method") = method
                 attr(result, "runtime") = elapsed$toc - elapsed$tic
                 attr(result, "parameters") = params
+                attr(result, "rep") = i
                 
                 saveRDS(result, paste0(method_output_path, "rep=", i))
                 

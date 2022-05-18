@@ -60,12 +60,11 @@ probit_mcmc_glasso = function(X, Y, sampler, sampler_params, penalty = .01,
       
       mu = X[[i]] %*% beta
       A = constraints[[i]]
-      initial = initial_points[[i]]
       
       problem_params = list(n = n_mc_samples, 
                             mu = mu, Sigma = Sigma, 
                             lb = lb, ub = ub, A = A,
-                            initial = initial)
+                            initial = initial_points[[i]])
       params = c(problem_params, sampler_params)
       
       samples = do.call(sampler, params)
@@ -77,6 +76,9 @@ probit_mcmc_glasso = function(X, Y, sampler, sampler_params, penalty = .01,
       mc_est = mc_est / n_mc_samples
       
       E_sample_cov = E_sample_cov + mc_est
+      
+      # start at last sampled point
+      initial_points[[i]] = samples[n_mc_samples, ]
     }
     
     E_sample_cov = E_sample_cov / n_obs
@@ -119,7 +121,7 @@ probit_mcmc_glasso = function(X, Y, sampler, sampler_params, penalty = .01,
     Prec = Prec,
     beta = beta,
     iters = iter,
-    gllaso_llik = glasso_llik,
+    glasso_llik = glasso_llik,
     n_mc_samples = n_mc_samples,
     Sigma_history = Sigma_history,
     Prec_history = Prec_history

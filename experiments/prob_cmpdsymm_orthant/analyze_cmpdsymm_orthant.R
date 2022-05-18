@@ -5,7 +5,7 @@ library(data.table)
 
 # correlation = 0.5
 result_path = here("experiments", "prob_cmpdsymm_orthant", "results", "corr=0.5")
-result_path = here("experiments", "prob_cmpdsymm_orthant", "test_results", "corr=0.5")
+# result_path = here("experiments", "prob_cmpdsymm_orthant", "test_results", "corr=0.5")
 
 
 # preprocess --------------------------------------------------------------
@@ -32,12 +32,14 @@ for (i in 1:length(method_paths)) {
     
     dt = data.table(
       "estimate" = c(est, recursive = TRUE),
-      "error" =  sapply(est, function(e) attr(e, "error")),
+      # "error" =  sapply(est, function(e) attr(e, "error")),
       "method" = sapply(est, function(e) attr(e, "method")),
       "runtime" = sapply(est, function(e) attr(e, "runtime")),
       "rep" = sapply(est, function(e) attr(e, "rep")),
       "d" = sapply(est, function(e) attr(e, "d"))
-    ) 
+    )
+    
+    dt[!is.null(dt)]
     
   }), fill = TRUE)
 }
@@ -58,7 +60,7 @@ all_stats[, rel_error := abs( estimate - (1 / (1+d)) ) / estimate]
 avg_stats = all_stats[, .(estimate = mean(estimate),
                           runtime = mean(runtime),
                           rel_error = mean(rel_error),
-                          se_estimate = sd(estimate) / sqrt(.N),
+                          se_rel_error = sd(rel_error) / sqrt(.N),
                           se_runtime = sd(runtime) / sqrt(.N)),
                       by = list(method, d)]
 avg_stats = merge(avg_stats, families, by = "method")
@@ -93,23 +95,38 @@ perf_dim_style = list(
   theme(legend.position = "bottom")
 )
 
+
+
 # runtime -----
-ggplot(avg_stats, aes(x = d, y = runtime, shape = method, color = family)) +
+runtime_plot = ggplot(avg_stats, 
+                      aes(x = d, y = runtime, shape = method, color = family)) +
   geom_point(size = 2) + geom_line(linetype = 2) +
   geom_linerange(aes(ymin = runtime - 2*se_runtime, ymax = runtime + 2*se_runtime)) +
   perf_dim_style +
   scale_y_log10(labels = function(x) format(x, scientific=FALSE)) +
   labs(x = "Dimension", y = "Runtime (seconds)")
 
+ggsave(runtime_plot,
+       filename = "runtime.pdf",
+       device = "pdf",
+       path = here("plots", "prob_cmpdsymm_orthant"),
+       width = 6,
+       height = 6)
+
 # accuracy ----
-ggplot(avg_stats, aes(x = d, y = rel_error, shape = method, color = family)) +
+accuracy_plot = ggplot(avg_stats[rel_error < 1], 
+                       aes(x = d, y = rel_error, shape = method, 
+                           color = family)) +
   geom_point(size = 2) + geom_line(linetype = 2) +
+  geom_linerange(aes(ymin = rel_error - 2*se_rel_error, 
+                     ymax = rel_error + 2*se_rel_error)) +
   perf_dim_style +
   scale_y_log10(labels = function(x) format(x, scientific=FALSE)) + 
   labs(x = "Dimension", y = "Relative error")
+ggsave(accuracy_plot,
+       filename = "accuracy.pdf",
+       device = "pdf",
+       path = here("plots", "prob_cmpdsymm_orthant"),
+       width = 6,
+       height = 6)
 
-
-ggplot(all_stats, aes(x = d, y = estimate, shape = method, color = family)) +
-  geom_point(size = 2) + geom_line(linetype = 2) +
-  perf_dim_style +
-  scale_y_log10(labels = function(x) format(x, scientific=FALSE))

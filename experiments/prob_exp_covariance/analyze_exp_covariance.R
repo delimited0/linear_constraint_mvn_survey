@@ -82,18 +82,35 @@ perf_dim_style = list(
 
 
 # runtime -----
-ggplot(all_stats, aes(x = d, y = runtime, shape = method, color = family)) +
+runtime_plot = ggplot(all_stats, 
+                      aes(x = d, y = runtime, shape = method, color = family)) +
   geom_point(size = 2) + geom_line(linetype = 2) +
   perf_dim_style +
   scale_y_log10(labels = function(x) format(x, scientific=FALSE)) +
   labs(x = "Dimension", y = "Runtime (seconds)")
 
+ggsave(runtime_plot,
+       filename = "runtime.pdf",
+       device = "pdf",
+       path = here("plots", "prob_exp_covariance"),
+       width = 6,
+       height = 6)
+
 # accuracy ----
-ggplot(all_stats, aes(x = d, y = estimate, shape = method, color = family)) +
+accuracy_plot = ggplot(all_stats, 
+                       aes(x = d, y = estimate, 
+                           shape = method, color = family)) +
   geom_point(size = 2) + geom_line(linetype = 2) +
   geom_errorbar(aes(ymin = estimate - 2*error, ymax = estimate + 2*error)) +
   perf_dim_style +
   labs(x = "Dimension", y = "Estimate")
+
+ggsave(accuracy_plot,
+       filename = "accuracy.pdf",
+       device = "pdf",
+       path = here("plots", "prob_exp_covariance"),
+       width = 6,
+       height = 6)
   
 
 

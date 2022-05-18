@@ -7,4 +7,4 @@ Rscript experiments/prob_cmpdsymm_orthant/prob_cmpdsymm_orthant.R \
 --result_path=experiments/prob_cmpdsymm_orthant/results \
 --n_reps=18 \
 --seed=2022 \
---n_cores=18
+--n_cores=18 & disown
