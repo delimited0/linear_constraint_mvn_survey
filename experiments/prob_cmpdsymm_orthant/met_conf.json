@@ -1,6 +1,6 @@
 [
   {
-    "method": "ghk",
+    "method": "met",
     "parameters":
       {
         "n_batch_mc": 1000

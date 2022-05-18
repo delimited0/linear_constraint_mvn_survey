@@ -8,4 +8,4 @@ Rscript experiments/em_sparse_probit/iq_glasso.R \
 --max_iter=300 \
 --seed=2022 \
 --n_cores=18 \
---n_blas_threads=1
+--n_blas_threads=1 & disown
