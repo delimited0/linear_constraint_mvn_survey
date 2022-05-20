@@ -64,7 +64,8 @@ if (!dir.exists(result_path)) dir.create(result_path)
 RhpcBLASctl::blas_set_num_threads(n_blas_threads)
 RhpcBLASctl::omp_set_num_threads(n_blas_threads)
 doFuture::registerDoFuture()
-future::plan(future::multicore, workers = n_cores)
+# future::plan(future::multicore, workers = n_cores)
+future::plan(future::multisession, workers = n_cores)
 
 # each job needs enough memory, 6GB
 options(future.globals.maxSize = 6000 * 1024^2)
