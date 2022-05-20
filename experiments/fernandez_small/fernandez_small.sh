@@ -6,5 +6,5 @@ Rscript experiments/fernandez_small/fernandez_small.R \
 --result_path=experiments/fernandez_small/results \
 --n_reps=18 \
 --seed=2022 \
---n_cores=1 \
---n_blas_threads=18 & disown
+--n_cores=18 \
+--n_blas_threads=1 & disown
