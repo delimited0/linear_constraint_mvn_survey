@@ -15,8 +15,15 @@
     }
   },
   {
-    "method": "ghk",
+    "method": "hblkcdn",
     "parameters":
+    {
+      "cond_size": 4
+    }
+  },
+  {
+    "method": "hmvn",
+    "parameters": 
     {
       "n_batch_mc": 1000
     }
@@ -31,7 +38,7 @@
       "n_batch_mc": 1000
     }
   },
-    {
+  {
     "method": "uvcdn"
   },
   {
@@ -45,15 +52,8 @@
     }
   },
   {
-    "method": "hblkcdn",
+    "method": "ghk",
     "parameters":
-    {
-      "cond_size": 4
-    }
-  },
-  {
-    "method": "hmvn",
-    "parameters": 
     {
       "n_batch_mc": 1000
     }
