@@ -57,5 +57,15 @@
     {
       "n_batch_mc": 1000
     }
+  },
+  {
+    "method": "lcg",
+    "parameters": 
+    {
+      "n_sub_samples": 16,
+      "n_sub_skip": 10,
+      "n_hdr_samples": 420,
+      "n_hdr_skip": 2
+    }
   }
 ]

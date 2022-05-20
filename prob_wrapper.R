@@ -96,17 +96,17 @@ hmvn = function(mu, Sigma, lb, ub, n_batch_mc, block_size = NULL, n_est = 10,
   ratio = d / block_size
   stopifnot(bitwAnd(ratio, ratio-1) == 0)  # d / block_size must be power of 2
   
-  # odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, block_size)
+  odr = hccmvn::recurUniandBlkcmb(Sigma, lb - mu, ub - mu, block_size)
   
   ests = rep(NA, n_est)
   for (i in 1:n_est) {
     ests[i] = hccmvn::hmvn(
-      # covM = Sigma[odr, odr],
-      # a = (lb - mu)[odr],
-      # b = (ub - mu)[odr],
-      covM = Sigma,
-      a = lb - mu,
-      b = ub - mu,
+      covM = Sigma[odr, odr],
+      a = (lb - mu)[odr],
+      b = (ub - mu)[odr],
+      # covM = Sigma,
+      # a = lb - mu,
+      # b = ub - mu,
       m = block_size,
       N = n_batch_mc,
       ns = 1,
