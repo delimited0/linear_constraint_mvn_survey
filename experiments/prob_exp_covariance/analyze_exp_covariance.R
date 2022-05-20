@@ -3,8 +3,8 @@ library(data.table)
 
 # pick results ------------------------------------------------------------
 
-# result_path = here("experiments", "prob_exp_covariance", "results", "dep=0.1")
-result_path = here("experiments", "prob_exp_covariance", "test_results", "dep=0.1")
+result_path = here("experiments", "prob_exp_covariance", "results", "dep=0.1")
+# result_path = here("experiments", "prob_exp_covariance", "test_results", "dep=0.1")
 
 # preprocess --------------------------------------------------------------
 
@@ -31,8 +31,6 @@ for (i in 1:length(method_paths)) {
       if (is.null(err)) err = NA
       return(err)
     })
-    if (is.null(error))
-      error = NA
     
     dt = data.table(
       "estimate" = c(est, recursive=TRUE),
@@ -91,7 +89,7 @@ perf_dim_style = list(
   guides(fill="none", 
          # color="none",
          shape="none", linetype="none"),
-  xlim(0, 1800),
+  xlim(0, 5000),
   scale_color_manual(values = family_colors),
   scale_shape_manual(values = method_shapes),
   theme(legend.position = "bottom")
