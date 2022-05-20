@@ -8,4 +8,4 @@ Rscript experiments/prob_exp_covariance/prob_exp_covariance.R \
 --n_reps=18 \
 --seed=2022 \
 --n_cores=18 \
---blas_threads=1 & disown
+--n_blas_threads=1 & disown
