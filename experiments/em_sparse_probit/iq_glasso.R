@@ -105,6 +105,7 @@ true_precisions = list(
 for (problem_idx in 1:length(true_precisions)) {
   
   experiment_name = names(true_precisions)[problem_idx]
+  print(paste0("Experiment: ", experiment_name))
   
   # true parameter values
   coef_true = rep(0, d)

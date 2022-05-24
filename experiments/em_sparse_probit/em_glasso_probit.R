@@ -162,6 +162,8 @@ probit_ep_glasso = function(X, Y, sampler, sampler_params, penalty = .01,
   Prec_history = vector(mode = "list", length = max_iter)
   
   while (dPrec > tol & iter <= max_iter) {
+    
+    Prec = chol2inv(chol(Sigma))
     E_sample_cov = matrix(0, nrow = n_choices, ncol = n_choices)
     for (i in 1:n_obs) {
       

@@ -24,16 +24,21 @@ n_reps = as.numeric(opts$n_reps)
 max_iter = as.numeric(opts$max_iter)
 
 # default arguments -------------------------------------------------------
-if (is.null(seed)) seed = 2022
-if (is.null(n_cores)) n_cores = 1
-if (is.null(n_blas_threads)) n_blas_threads = 1
-if (is.null(max_iter)) max_iter = 200
+if (is.null(seed)) 
+  seed = 2022
+if (is.null(n_cores)) 
+  n_cores = 1
+if (is.null(n_blas_threads)) 
+  n_blas_threads = 1
+if (is.null(max_iter)) 
+  max_iter = 200
 
 # hard coded arguments for debugging --------------------------------------
-# output_path = "experiments/em_sparse_probit/output"
+# output_path = "experiments/em_sparse_probit/test_output"
 # problem_idx = 1
 # j = 1
 # max_iter = 300
+# n_reps = 4
 
 # libraries ---------------------------------------------------------------
 library(here)
@@ -86,7 +91,9 @@ true_precisions = list(
 )
 
 for (problem_idx in 1:length(true_precisions)) {
+  
   experiment_name = names(true_precisions)[problem_idx]
+  print(paste0("Experiment: ", experiment_name))
   
   # true parameter values
   coef_true = rep(0, d)
@@ -121,7 +128,7 @@ for (problem_idx in 1:length(true_precisions)) {
               Y = t(apply(Z, 1, function(x) x >= x[which.max(x)])) 
               
               tic()
-              result = probit_emep_gl(
+              result = probit_ep_glasso(
                 X = X, Y = Y, 
                 penalty = penalty, 
                 Sigma_init = Sigma_init, beta_init = beta_init, 
@@ -131,7 +138,6 @@ for (problem_idx in 1:length(true_precisions)) {
               
               attr(result, "method") = "EP"
               attr(result, "runtime") = elapsed$toc - elapsed$tic
-              attr(result, "parameters") = params
               attr(result, "rep") = i
               
               saveRDS(result, paste0(method_output_path, "rep=", i))
