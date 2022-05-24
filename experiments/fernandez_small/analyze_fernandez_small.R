@@ -3,7 +3,8 @@ library(data.table)
 
 # pick results ------------------------------------------------------------
 
-result_path = here("experiments", "fernandez_small", "test_results")
+result_path = here("experiments", "fernandez_small", "results")
+# result_path = here("experiments", "fernandez_small", "test_results")
 
 # preprocess --------------------------------------------------------------
 
@@ -102,7 +103,7 @@ perf_dim_style = list(
                   max.overlaps = Inf,
                   force = 10, 
                   # xlim = c(0, 3000),
-                  nudge_x = 200),
+                  nudge_x = 2),
   guides(fill="none", 
          # color="none",
          shape="none", linetype="none"),
@@ -122,6 +123,13 @@ runtime_plot =
   xlim(0, 60) + 
   labs(x = "Dimension", y = "Runtime (seconds)")
 
+ggsave(runtime_plot,
+       filename = "runtime.pdf",
+       device = "pdf",
+       path = here("plots", "prob_fernandez_small"),
+       width = 6,
+       height = 6)
+
 # accuracy ----
 accuracy_plot = ggplot(avg_stats[!(method %in% c("uvcdn", "bvcdn", "dvcdn"))],
        aes(x = d, y = relerror, color = method)) +
@@ -131,4 +139,10 @@ accuracy_plot = ggplot(avg_stats[!(method %in% c("uvcdn", "bvcdn", "dvcdn"))],
   labs(x = "Dimension", y = "Max relative bound exceedance")
   # scale_y_log10() +
 
+ggsave(accuracy_plot,
+       filename = "accuracy.pdf",
+       device = "pdf",
+       path = here("plots", "prob_fernandez_small"),
+       width = 6,
+       height = 6)
 

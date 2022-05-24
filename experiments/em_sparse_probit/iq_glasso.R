@@ -160,6 +160,7 @@ for (problem_idx in 1:length(true_precisions)) {
                 attr(result, "runtime") = elapsed$toc - elapsed$tic
                 attr(result, "parameters") = params
                 attr(result, "rep") = i
+                attr(result, "n_mc_samples") = n_mc_samples
                 
                 saveRDS(result, paste0(method_output_path, "rep=", i))
                 

@@ -47,10 +47,11 @@ for (i in 1:length(method_paths)) {
   glasso_llik_results[[i]] = rbindlist(glasso_llik_temp)
 }
 
+
+### visualization ###
 library(ggplot2)
 
-# convergence check
-
+## convergence check
 glasso_llik_dt = rbindlist(glasso_llik_results)
 
 ggplot(glasso_llik_dt, aes(x = iter, y = llik, color = as.factor(rep))) +
@@ -58,17 +59,28 @@ ggplot(glasso_llik_dt, aes(x = iter, y = llik, color = as.factor(rep))) +
   facet_wrap(vars(method)) +
   guides(color = "none")
 
-# parameter estimate
+## parameter estimate
 prec_est_dt = rbindlist(prec_est_results)
 prec_est_dt = melt(prec_est_dt, id.vars = c("method", "rep", "runtime"))
+prec_est_dt[, true_value := ifelse(variable == "(1,2)", .5, 0)]
 
 ggplot(prec_est_dt, aes(x = method, y = value)) +
-  geom_point() +
+  # geom_point() +
+  geom_boxplot() +
+  geom_hline(aes(yintercept = true_value)) + 
+  facet_wrap(vars(variable)) +
+  theme_bw() +
+  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  labs(x = "Method", y = "Estimated precision")
+
+## runtime 
+ggplot(prec_est_dt, aes(x = method, y = runtime)) +
+  # geom_point() +
+  geom_boxplot() +
   facet_wrap(vars(variable)) +
   theme_bw() +
   scale_x_discrete(guide = guide_axis(angle = 45))
   
-
 # parameter estimate by iter
 ggplot(glasso_llik_dt, aes(x = iter, y = est_12, color = as.factor(rep))) +
   geom_line() +
