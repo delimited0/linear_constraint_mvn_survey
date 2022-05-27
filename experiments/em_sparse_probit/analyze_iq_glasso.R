@@ -63,23 +63,49 @@ ggplot(glasso_llik_dt, aes(x = iter, y = llik, color = as.factor(rep))) +
 prec_est_dt = rbindlist(prec_est_results)
 prec_est_dt = melt(prec_est_dt, id.vars = c("method", "rep", "runtime"))
 prec_est_dt[, true_value := ifelse(variable == "(1,2)", .5, 0)]
+prec_est_dt[, approximate := ifelse(method == "EP", TRUE, FALSE)]
 
-ggplot(prec_est_dt, aes(x = method, y = value)) +
-  # geom_point() +
-  geom_boxplot() +
+param_recover_plot =  ggplot(prec_est_dt, 
+                             aes(x = method, y = value, color = approximate)) +
+  geom_point() +
+  # geom_boxplot() +
   geom_hline(aes(yintercept = true_value)) + 
   facet_wrap(vars(variable)) +
   theme_bw() +
   scale_x_discrete(guide = guide_axis(angle = 45)) +
-  labs(x = "Method", y = "Estimated precision")
+  labs(x = "Method", y = "Estimated precision") +
+  guides(color="none")
+
+ggsave(
+  param_recover_plot,
+  filename = "3d_recover_plot.pdf",
+  device = "pdf",
+  path = here("plots", "em_sparse_probit"),
+  width = 6, 
+  height = 5
+)
 
 ## runtime 
-ggplot(prec_est_dt, aes(x = method, y = runtime)) +
-  # geom_point() +
-  geom_boxplot() +
-  facet_wrap(vars(variable)) +
+prec_est_runtime = prec_est_dt[, .(runtime = unique(runtime)), 
+                               by = list(method, rep, approximate)]
+
+runtime_plot = ggplot(prec_est_runtime, 
+                      aes(x = method, y = runtime, color = approximate)) +
+  geom_point(size = 2) +
   theme_bw() +
-  scale_x_discrete(guide = guide_axis(angle = 45))
+  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  labs(x = "Method", y = "Runtime (seconds)") +
+  guides(color="none")
+
+ggsave(
+  runtime_plot,
+  filename = "3d_runtime_plot.pdf",
+  device = "pdf",
+  path = here("plots", "em_sparse_probit"),
+  width = 6, 
+  height = 5
+)
+
   
 # parameter estimate by iter
 ggplot(glasso_llik_dt, aes(x = iter, y = est_12, color = as.factor(rep))) +
@@ -92,7 +118,7 @@ ggplot(glasso_llik_dt, aes(x = llik, y = est_12, color = as.factor(rep))) +
   facet_wrap(vars(method))
 
 
-# 5d sparse problem -------------------------------------------------------
+# 5da sparse problem -------------------------------------------------------
 
 result_path = here("experiments", "em_sparse_probit", "output", "5d_a")
 
@@ -162,7 +188,34 @@ ggplot(glasso_llik_dt, aes(x = iter, y = llik, color = as.factor(rep))) +
 # parameter estimate
 prec_est_dt = rbindlist(prec_est_results)
 prec_est_dt = melt(prec_est_dt, id.vars = c("method", "rep", "runtime"))
+prec_est_dt[, variable := 
+              factor(variable, levels = c(
+                "(1,2)", "(1,3)", "(1,4)", "(1,5)", 
+                "(2,3)", "(2,4)", "(2,5)", 
+                "(3,4)", "(3,5)", 
+                "(4,5)"
+              ))
+]
+prec_est_dt[, true_value := fcase(
+  variable == "(3,4)", -.53,
+  variable != "(3, 4)", 0
+)]
 
 ggplot(prec_est_dt, aes(x = method, y = value)) +
   geom_point() +
-  facet_wrap(vars(variable))
+  geom_hline(aes(yintercept = true_value)) + 
+  facet_wrap(vars(variable)) +
+  theme_bw() +
+  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  labs(x = "Method", y = "Estimated precision")
+
+## runtime 
+prec_est_runtime = prec_est_dt[, .(runtime = unique(runtime)), 
+                               by = list(method, rep)]
+
+ggplot(prec_est_runtime, aes(x = method, y = runtime)) +
+  geom_point() +
+  # geom_boxplot() +
+  theme_bw() +
+  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  labs(x = "Method", y = "Runtime (seconds)")

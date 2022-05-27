@@ -145,7 +145,13 @@ for (problem_idx in 1:length(true_precisions)) {
                 Z = t(sapply(X, function(x) {
                   mvtnorm::rmvnorm(1, x %*% coef_true, Sigma_true) 
                 }))
-                Y = t(apply(Z, 1, function(x) x >= x[which.max(x)])) 
+                Y = t(
+                  apply(Z, 1, function(z) {
+                    choice = rep(FALSE, n_choices)
+                    choice[which.max(z)] = TRUE
+                    return(choice)
+                  })
+                ) 
                 
                 tic()
                 result = probit_mcmc_glasso(

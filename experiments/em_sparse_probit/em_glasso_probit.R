@@ -208,7 +208,7 @@ probit_ep_glasso = function(X, Y, sampler, sampler_params, penalty = .01,
     Prec = Prec,
     beta = beta,
     iters = iter,
-    gllaso_llik = glasso_llik,
+    glasso_llik = glasso_llik,
     Sigma_history = Sigma_history,
     Prec_history = Prec_history
   ))
