@@ -28,10 +28,10 @@ if (is.null(seed)) seed = 2022
 if (is.null(n_threads)) n_threads = 1
 
 # hard coded arguments for debugging --------------------------------------
-method_conf = "experiments/sample_identity_box/method_conf.json"
-dim_conf = "experiments/sample_identity_box/test_dim_conf.json"
-sample_path = "experiments/sample_identity_box/samples"
-half_width = 3
+# method_conf = "experiments/sample_identity_box/method_conf.json"
+# dim_conf = "experiments/sample_identity_box/test_dim_conf.json"
+# sample_path = "experiments/sample_identity_box/samples"
+# half_width = 3
 
 # libraries ---------------------------------------------------------------
 library(here)
