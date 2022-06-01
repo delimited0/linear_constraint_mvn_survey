@@ -6,6 +6,7 @@ gibbs_cov,gibbs
 gibbs_ry2004,gibbs
 gibbs_lg2015,gibbs
 ghk,importance
-met,importance
+met,rejection
 epess,ess
 liness,ess
+rsm,rejection

@@ -102,17 +102,17 @@ family_colors = setNames(viridis::turbo(n_family),
 
 # common plot style
 perf_dim_style = list(
-  theme_bw(),
+  theme_bw(base_size = 14),
   geom_text_repel(aes(label = label), 
                   # color = "black", 
                   max.overlaps = Inf,
                   force = 10, 
                   # xlim = c(0, 3000),
-                  nudge_x = 200),
+                  nudge_x = 500),
   guides(fill="none", 
          # color="none",
          shape="none", linetype="none"),
-  xlim(0, 4500),
+  xlim(0, 5000),
   # scale_color_manual(values = method_colors)
   scale_color_manual(values = family_colors),
   scale_shape_manual(values = method_shapes),
@@ -135,8 +135,8 @@ ggsave(
   filename = "mean_est_plot.pdf",
   device = "pdf",
   path =  here("plots", "sample_cmpdsymm_orthant"),
-  width = 6,
-  height = 5
+  width = 5,
+  height = 7
 )
 
 # mean effective samples / second
@@ -152,8 +152,8 @@ ggsave(
   filename = "essps_plot.pdf",
   device = "pdf",
   path =  here("plots", "sample_cmpdsymm_orthant"),
-  width = 6,
-  height = 5
+  width = 5,
+  height = 7
 )
 
 # runtime
@@ -169,8 +169,8 @@ ggsave(
   filename = "runtime_plot.pdf",
   device = "pdf",
   path =  here("plots", "sample_cmpdsymm_orthant"),
-  width = 6,
-  height = 5
+  width = 5,
+  height = 7
 )
 
 

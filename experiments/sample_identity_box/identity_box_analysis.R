@@ -107,7 +107,7 @@ family_colors = setNames(viridis::turbo(n_family),
 
 # common plot style
 perf_dim_style = list(
-  theme_bw(),
+  theme_bw(base_size = 14),
   geom_text_repel(aes(label = label), 
                   # color = "black", 
                   max.overlaps = Inf,
@@ -116,7 +116,7 @@ perf_dim_style = list(
                   nudge_x = 200),
   guides(fill="none", 
          # color="none",
-         shape="none", linetype="none"),
+         shape="none", linetype="none", color = "none"),
   xlim(0, 2500),
   # scale_color_manual(values = method_colors)
   scale_color_manual(values = family_colors),
@@ -149,8 +149,8 @@ ggsave(
   filename = "runtime_plot.pdf",
   device = "pdf",
   path =  here("plots", "sample_identity_box"),
-  width = 6,
-  height = 5
+  width = 5,
+  height = 6
 )
 
 # average marginal effective samples per second by problem dimension ----
@@ -167,8 +167,8 @@ ggsave(
   filename = "essps_plot.pdf",
   device = "pdf",
   path =  here("plots", "sample_identity_box"),
-  width = 6,
-  height = 5
+  width = 5,
+  height = 7
 )
   
 # average marginal ks distance by problem dimension ----
@@ -183,7 +183,7 @@ ggsave(
   filename = "ks_plot.pdf",
   device = "pdf",
   path =  here("plots", "sample_identity_box"),
-  width = 6,
-  height = 5
+  width = 5,
+  height = 7
 )
 

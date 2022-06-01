@@ -66,7 +66,7 @@ doFuture::registerDoFuture()
 future::plan(future::multisession, workers = n_cores)
 
 # each job needs enough memory, 6GB
-options(future.globals.maxSize = 6000 * 1024^2)
+options(future.globals.maxSize = 10000 * 1024^2)
 
 # start up summary --------------------------------------------------------
 print(paste0("Running compound symmetric orthant probability estimation with ",
