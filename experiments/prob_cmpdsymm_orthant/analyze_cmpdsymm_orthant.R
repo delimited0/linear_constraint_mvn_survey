@@ -74,12 +74,12 @@ method_shapes = setNames(shape_set[1:n_methods], nm = unique(avg_stats$method))
 
 # family by color
 n_family = length(unique(avg_stats$family))
-family_colors = setNames(viridis::turbo(n_family),
-                         nm = unique(avg_stats$family))
+family_colors = setNames(RColorBrewer::brewer.pal(n_family, "Set1"),
+                         nm = unique(all_stats$family))
 
 # common plot style
 perf_dim_style = list(
-  theme_bw(),
+  theme_bw(base_size = 14),
   geom_text_repel(aes(label = label), 
                   # color = "black", 
                   max.overlaps = Inf,
@@ -88,7 +88,8 @@ perf_dim_style = list(
                   nudge_x = 200),
   guides(fill="none", 
          # color="none",
-         shape="none", linetype="none"),
+         shape="none", linetype="none",
+         color = guide_legend(nrow = 2)),
   xlim(0, 11000),
   scale_color_manual(values = family_colors),
   scale_shape_manual(values = method_shapes),

@@ -44,12 +44,32 @@ all_stats = rbindlist(lapply(
 # visualization -----------------------------------------------------------
 library(ggplot2)
 
+families = fread(here("sampling_method_directory.csv"))
+all_stats = merge(all_stats, families, by = "method")
+
+# family by color
+n_family = length(unique(all_stats$family))
+family_colors = setNames(RColorBrewer::brewer.pal(n_family, "Set1"),
+                         nm = unique(all_stats$family))
+
+plot_geom = list(
+  geom_boxplot(),
+  geom_jitter(width = .1)
+)
+
+plot_style = list(
+  theme_bw(base_size = 14),
+  guides(x = guide_axis(angle = 45)),
+  scale_color_manual(values = family_colors),
+  theme(legend.position = "bottom")
+)
+
 # true parameter recovery
 recovery_plot = ggplot(all_stats[method != "epess"], 
-                       aes(x = method, y = posterior_median)) +
-  geom_point() + 
+                       aes(x = method, y = posterior_median, color = family)) +
+  plot_geom +
+  plot_style + 
   geom_hline(yintercept = 0.84) +
-  theme_bw() +
   guides(x = guide_axis(angle = 45)) +
   labs(x = "Method", y = "Posterior median")
 
@@ -58,15 +78,14 @@ ggsave(
   filename = "recovery_plot.pdf",
   device = "pdf",
   path =  here("plots", "proton_radius"),
-  width = 6,
-  height = 4
+  width = 5,
+  height = 7
 )
 
 # MC standard error
-mcse_plot = ggplot(all_stats, aes(x = method, y = mc_se)) +
-  geom_point() + 
-  theme_bw() +
-  guides(x = guide_axis(angle = 45)) +
+mcse_plot = ggplot(all_stats, aes(x = method, y = mc_se, color = family)) +
+  plot_geom +
+  plot_style +
   labs(x = "Method", y = "Monte Carlo standard error")
 
 ggsave(
@@ -74,15 +93,15 @@ ggsave(
   filename = "mcse_plot.pdf",
   device = "pdf",
   path =  here("plots", "proton_radius"),
-  width = 6,
-  height = 4
+  width = 5,
+  height = 7
 )
 
 # ESS / second
-esspersec_plot = ggplot(all_stats, aes(x = method, y = ess / runtime)) +
-  geom_point() +
-  theme_bw() +
-  guides(x = guide_axis(angle = 45)) +
+esspersec_plot = ggplot(all_stats, 
+                        aes(x = method, y = ess / runtime, color = family)) +
+  plot_geom +
+  plot_style +
   labs(x = "Method", y = "Effective samples per second")
 
 ggsave(
@@ -90,15 +109,14 @@ ggsave(
   filename = "essps_plot.pdf",
   device = "pdf",
   path =  here("plots", "proton_radius"),
-  width = 6,
-  height = 4
+  width = 5,
+  height = 7
 )
 
 # runtime
-runtime_plot = ggplot(all_stats, aes(x = method, y = runtime)) +
-  geom_point() +
-  theme_bw() +
-  guides(x = guide_axis(angle = 45)) +
+runtime_plot = ggplot(all_stats, aes(x = method, y = runtime, color = family)) +
+  plot_geom +
+  plot_style +
   labs(x = "Method", y = "Runtime (seconds)")
 
 ggsave(
@@ -106,8 +124,8 @@ ggsave(
   filename = "runtime_plot.pdf",
   device = "pdf",
   path =  here("plots", "proton_radius"),
-  width = 6,
-  height = 4
+  width = 5,
+  height = 7
 )
 
 

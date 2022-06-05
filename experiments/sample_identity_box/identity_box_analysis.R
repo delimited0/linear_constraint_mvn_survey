@@ -102,7 +102,9 @@ method_shapes = setNames(shape_set[1:n_methods], nm = unique(all_stats$method))
 
 # family by color
 n_family = length(unique(all_stats$family))
-family_colors = setNames(viridis::turbo(n_family),
+# family_colors = setNames(viridis::turbo(n_family),
+#                          nm = unique(all_stats$family))
+family_colors = setNames(RColorBrewer::brewer.pal(n_family, "Set1"),
                          nm = unique(all_stats$family))
 
 # common plot style
@@ -115,8 +117,10 @@ perf_dim_style = list(
                   # xlim = c(0, 3000),
                   nudge_x = 200),
   guides(fill="none", 
-         # color="none",
-         shape="none", linetype="none", color = "none"),
+         shape="none", 
+         linetype="none",
+         color = guide_legend(nrow = 2)
+  ),
   xlim(0, 2500),
   # scale_color_manual(values = method_colors)
   scale_color_manual(values = family_colors),
@@ -150,7 +154,7 @@ ggsave(
   device = "pdf",
   path =  here("plots", "sample_identity_box"),
   width = 5,
-  height = 6
+  height = 7
 )
 
 # average marginal effective samples per second by problem dimension ----

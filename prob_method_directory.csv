@@ -9,4 +9,4 @@ met,is,TRUE,FALSE
 hmvn,hblock,TRUE,TRUE
 hblkcdn,hblock,TRUE,TRUE
 dvcdn,conditioning,TRUE,FALSE
-tlr,tlr,TRUE,FALSE
+tlr,hblock,TRUE,TRUE

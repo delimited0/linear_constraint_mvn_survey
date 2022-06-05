@@ -92,12 +92,12 @@ method_shapes = setNames(shape_set[1:n_methods], nm = unique(all_stats$method))
 
 # family by color
 n_family = length(unique(all_stats$family))
-family_colors = setNames(viridis::turbo(n_family),
+family_colors = setNames(RColorBrewer::brewer.pal(n_family, "Set1"),
                          nm = unique(all_stats$family))
 
 # common plot style
 perf_dim_style = list(
-  theme_bw(),
+  theme_bw(base_size = 14),
   geom_text_repel(aes(label = label), 
                   # color = "black", 
                   max.overlaps = Inf,
@@ -107,6 +107,7 @@ perf_dim_style = list(
   guides(fill="none", 
          # color="none",
          shape="none", linetype="none"),
+  xlim(0, 60),
   scale_color_manual(values = family_colors),
   scale_shape_manual(values = method_shapes),
   theme(legend.position = "bottom")
@@ -117,10 +118,10 @@ runtime_plot =
   ggplot(avg_stats, 
          aes(x = d, y = runtime, shape = method, color = family)) +
   geom_point(size = 2) + geom_line(linetype = 2) +
-  geom_linerange(aes(ymin = runtime - 2*se_runtime, ymax = runtime + 2*se_runtime)) +
+  geom_linerange(aes(ymin = runtime - 2*se_runtime, 
+                     ymax = runtime + 2*se_runtime)) +
   perf_dim_style +
   scale_y_log10(labels = function(x) format(x, scientific=FALSE)) +
-  xlim(0, 60) + 
   labs(x = "Dimension", y = "Runtime (seconds)")
 
 ggsave(runtime_plot,
@@ -128,15 +129,17 @@ ggsave(runtime_plot,
        device = "pdf",
        path = here("plots", "prob_fernandez_small"),
        width = 6,
-       height = 6)
+       height = 5)
 
 # accuracy ----
 accuracy_plot = ggplot(avg_stats[!(method %in% c("uvcdn", "bvcdn", "dvcdn"))],
-       aes(x = d, y = relerror, color = method)) +
-  geom_point() + geom_line() +
+       aes(x = d, y = relerror, shape = method, color = family)) +
+  geom_point(size = 2) + geom_line(linetype = 2) +
+  # geom_linerange(aes(ymin = relerror - se_relerror, 
+  #                    ymax = runtime + se_relerror)) +
   perf_dim_style +
   coord_cartesian(ylim = c(0, 1)) +
-  labs(x = "Dimension", y = "Max relative bound exceedance")
+  labs(x = "Dimension", y = "Mean max relative bound exceedance")
   # scale_y_log10() +
 
 ggsave(accuracy_plot,
@@ -144,5 +147,5 @@ ggsave(accuracy_plot,
        device = "pdf",
        path = here("plots", "prob_fernandez_small"),
        width = 6,
-       height = 6)
+       height = 5)
 

@@ -1,7 +1,7 @@
 'prob_cmpdsymm_orthant
 
 Usage:
-  prob_cmpdsymm_orthant.R (--method_conf=<method_conf>) (--dim_conf=<dim_conf>) (--corr=<corr>) (--result_path=<result_path>) [--n_reps=n_reps] [--seed=seed] [--n_cores=n_cores] [--n_blas_threads=n_blas_threads]
+  prob_cmpdsymm_orthant.R (--method_conf=<method_conf>) (--dim_conf=<dim_conf>) (--corr=<corr>) (--result_path=<result_path>) [--n_reps=n_reps] [--seed=seed] [--n_cores=n_cores] [--n_blas_threads=n_blas_threads] [--par_type=par_type]
   prob_cmpdsymm_orthant.R (-h|--help)
 
 Options:
@@ -14,6 +14,7 @@ Options:
   --seed=seed  Seed.
   --n_cores=n_cores  Number of cores.
   --n_blas_threads=n_blas_threads  Number of BLAS threads.
+  --par_type=par_type  Future package parallel plan.
 ' -> doc
 
 opts = docopt::docopt(doc, version = 'prob_cmpdsymm_orthant 1.0')
@@ -26,11 +27,13 @@ n_reps = opts$n_reps
 seed = as.numeric(opts$seed)
 n_cores = as.numeric(opts$n_cores)
 n_blas_threads = as.numeric(opts$n_blas_threads)
+par_type = opts$par_type
 
 # default arguments ------------------------------------------------------
 if (is.null(seed)) seed = 2022
 if (is.null(n_cores)) n_cores = 1
 if (is.null(n_blas_threads)) n_blas_threads = 1
+if (is.null(par_type)) par_type = "multisession"
 
 # hard coded arguments for debugging --------------------------------------
 # method_conf = "experiments/prob_cmpdsymm_orthant/method_conf.json"
@@ -63,9 +66,10 @@ RhpcBLASctl::blas_set_num_threads(n_blas_threads)  # no hyperthreading in BLAS
 RhpcBLASctl::omp_set_num_threads(n_blas_threads)
 doFuture::registerDoFuture()
 # future::plan(future::multicore, workers = n_cores)
-future::plan(future::multisession, workers = n_cores)
+# future::plan(future::multisession, workers = n_cores)
+plan(par_type, workers = n_cores)
 
-# each job needs enough memory, 6GB
+# each job needs enough memory, 10GB
 options(future.globals.maxSize = 10000 * 1024^2)
 
 # start up summary --------------------------------------------------------

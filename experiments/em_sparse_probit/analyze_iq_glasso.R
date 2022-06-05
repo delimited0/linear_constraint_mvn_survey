@@ -47,7 +47,6 @@ for (i in 1:length(method_paths)) {
   glasso_llik_results[[i]] = rbindlist(glasso_llik_temp)
 }
 
-
 ### visualization ###
 library(ggplot2)
 
@@ -65,16 +64,40 @@ prec_est_dt = melt(prec_est_dt, id.vars = c("method", "rep", "runtime"))
 prec_est_dt[, true_value := ifelse(variable == "(1,2)", .5, 0)]
 prec_est_dt[, approximate := ifelse(method == "EP", TRUE, FALSE)]
 
+# family by color
+families = fread(here("sampling_method_directory.csv"))
+prec_est_dt = merge(prec_est_dt, families, by = "method", all.x = TRUE)
+
+n_family = length(unique(prec_est_dt$family))
+family_colors = setNames(RColorBrewer::brewer.pal(n_family, "Set1"),
+                         nm = unique(prec_est_dt$family))
+
+
+plot_geom = list(
+  geom_boxplot(),
+  geom_jitter(width = .1)
+)
+
+# aesthetics
+aesthetics = list(
+  theme_bw(base_size=14),
+  guides(
+    x = guide_axis(angle = 45),
+    color="none",
+    shape="none"
+  )
+)
+
 param_recover_plot =  ggplot(prec_est_dt, 
-                             aes(x = method, y = value, color = approximate)) +
-  geom_point() +
-  # geom_boxplot() +
+                             aes(x = method, y = value, 
+                                 color = approximate)) +
+  plot_geom + 
   geom_hline(aes(yintercept = true_value)) + 
   facet_wrap(vars(variable)) +
-  theme_bw() +
-  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  aesthetics +
   labs(x = "Method", y = "Estimated precision") +
-  guides(color="none")
+  ylim(-1, 1)
+  
 
 ggsave(
   param_recover_plot,
@@ -91,9 +114,8 @@ prec_est_runtime = prec_est_dt[, .(runtime = unique(runtime)),
 
 runtime_plot = ggplot(prec_est_runtime, 
                       aes(x = method, y = runtime, color = approximate)) +
-  geom_point(size = 2) +
-  theme_bw() +
-  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  plot_geom +
+  aesthetics +
   labs(x = "Method", y = "Runtime (seconds)") +
   guides(color="none")
 
